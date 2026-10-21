@@ -54,9 +54,11 @@ export function AdminLayout() {
       <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0">
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
-              D
-            </div>
+            <img
+              src="/drivefleet_logo_icon.png"
+              alt="DriveFleet logo"
+              className="w-8 h-8 object-contain"
+            />
             <div>
               <span className="font-bold text-white text-base">DriveFleet</span>
               <span className="block text-[10px] text-blue-400 uppercase tracking-wider font-semibold">

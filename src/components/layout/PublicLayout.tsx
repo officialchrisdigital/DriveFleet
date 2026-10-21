@@ -48,9 +48,11 @@ export function PublicLayout() {
           {/* Logo & Hub Badge */}
           <div className="flex items-center gap-4 shrink-0">
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                D
-              </div>
+              <img
+                src="/drivefleet_logo_icon.png"
+                alt="DriveFleet logo"
+                className="w-8 h-8 object-contain"
+              />
               <span className="text-xl font-bold tracking-tight text-slate-900">
                 Drive<span className="text-blue-600">Fleet</span>
               </span>
@@ -176,9 +178,11 @@ export function PublicLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 text-white font-bold text-lg mb-3">
-              <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-xs">
-                D
-              </div>
+              <img
+                src="/drivefleet_logo_icon.png"
+                alt="DriveFleet logo"
+                className="w-6 h-6 object-contain"
+              />
               DriveFleet
             </div>
             <p className="text-xs text-slate-400 leading-relaxed mb-4">
