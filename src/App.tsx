@@ -9,6 +9,12 @@ import { PagePlaceholder } from './components/shared/PagePlaceholder';
 import { HomePage } from './pages/public/HomePage';
 import { VehiclesPage } from './pages/public/VehiclesPage';
 import { VehicleDetailPage } from './pages/public/VehicleDetailPage';
+import { HowItWorksPage } from './pages/public/HowItWorksPage';
+import { AboutPage } from './pages/public/AboutPage';
+import { ContactPage } from './pages/public/ContactPage';
+import { FaqPage } from './pages/public/FaqPage';
+import { TermsPage } from './pages/public/TermsPage';
+import { PrivacyPage } from './pages/public/PrivacyPage';
 import { BookingWizardPage } from './pages/booking/BookingWizardPage';
 import { CheckoutSimulatorPage } from './pages/booking/CheckoutSimulatorPage';
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage';
@@ -46,79 +52,12 @@ export function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/vehicles" element={<VehiclesPage />} />
             <Route path="/vehicles/:vehicleId" element={<VehicleDetailPage />} />
-            <Route
-              path="/how-it-works"
-              element={
-                <div className="max-w-4xl mx-auto px-4 py-12">
-                  <PagePlaceholder
-                    title="How DriveFleet Works"
-                    subtitle="Learn our 3-step rental journey: Select Dates, Transparent Quote, and Fast Branch Handover."
-                    routeCode="FR-01 /how-it-works"
-                    actions={[{ label: 'Book a Car Now', to: '/vehicles', primary: true }]}
-                  />
-                </div>
-              }
-            />
-            <Route
-              path="/about"
-              element={
-                <div className="max-w-4xl mx-auto px-4 py-12">
-                  <PagePlaceholder
-                    title="About DriveFleet Technologies Ltd."
-                    subtitle="Enterprise car rental & fleet operational management in Nigeria."
-                    routeCode="FR-01 /about"
-                  />
-                </div>
-              }
-            />
-            <Route
-              path="/contact"
-              element={
-                <div className="max-w-4xl mx-auto px-4 py-12">
-                  <PagePlaceholder
-                    title="Contact & Branch Directory"
-                    subtitle="Lagos Ikeja Main Hub and Abuja Central Terminal operational hours and support."
-                    routeCode="FR-01 /contact"
-                  />
-                </div>
-              }
-            />
-            <Route
-              path="/faq"
-              element={
-                <div className="max-w-4xl mx-auto px-4 py-12">
-                  <PagePlaceholder
-                    title="Frequently Asked Questions"
-                    subtitle="Answers on amendments, deposits, simulated checkout, and weekend surcharge rules."
-                    routeCode="FR-01 /faq"
-                  />
-                </div>
-              }
-            />
-            <Route
-              path="/terms"
-              element={
-                <div className="max-w-4xl mx-auto px-4 py-12">
-                  <PagePlaceholder
-                    title="Rental Terms & Operating SLA"
-                    subtitle="Comprehensive sample conditions for 24h cancellations, mileage caps, and insurance."
-                    routeCode="FR-01 /terms"
-                  />
-                </div>
-              }
-            />
-            <Route
-              path="/privacy"
-              element={
-                <div className="max-w-4xl mx-auto px-4 py-12">
-                  <PagePlaceholder
-                    title="Data Privacy Policy"
-                    subtitle="NDPR compliant handling of driver credentials and customer identity dossiers."
-                    routeCode="FR-01 /privacy"
-                  />
-                </div>
-              }
-            />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/faq" element={<FaqPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
 
             {/* Auth Routes */}
             <Route
