@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-page text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Ensure minimum body font size of 16px */
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus ring utility for keyboard navigation */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-action;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-secondary-text/40;
+  }
+}
+
+@layer utilities {
+  /* Currency formatting helper */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}

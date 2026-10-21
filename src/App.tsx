@@ -1,0 +1,358 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { PublicLayout } from './components/layout/PublicLayout';
+import { AdminLayout } from './components/layout/AdminLayout';
+import { CustomerLayout } from './components/layout/CustomerLayout';
+import { PagePlaceholder } from './components/shared/PagePlaceholder';
+
+// Interactive Milestone 2 Pages
+import { HomePage } from './pages/public/HomePage';
+import { VehiclesPage } from './pages/public/VehiclesPage';
+import { VehicleDetailPage } from './pages/public/VehicleDetailPage';
+import { BookingWizardPage } from './pages/booking/BookingWizardPage';
+import { CheckoutSimulatorPage } from './pages/booking/CheckoutSimulatorPage';
+import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage';
+import { AccountOverviewPage } from './pages/account/AccountOverviewPage';
+import { MyBookingsPage } from './pages/account/MyBookingsPage';
+import { ProfilePage } from './pages/account/ProfilePage';
+
+// Interactive Milestone 3 Operations Pages
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { FleetRegisterPage } from './pages/admin/FleetRegisterPage';
+import { DispatchCalendarPage } from './pages/admin/DispatchCalendarPage';
+import { PickupHandoverPage } from './pages/admin/PickupHandoverPage';
+import { ReturnInspectionPage } from './pages/admin/ReturnInspectionPage';
+import { CustomerCrmPage } from './pages/admin/CustomerCrmPage';
+import { MaintenanceRegistryPage } from './pages/admin/MaintenanceRegistryPage';
+
+// Interactive Milestone 4 Management Pages
+import { OperationalReportsPage } from './pages/admin/OperationalReportsPage';
+import { PricingManagementPage } from './pages/admin/PricingManagementPage';
+import { PromosManagementPage } from './pages/admin/PromosManagementPage';
+import { TeamManagementPage } from './pages/admin/TeamManagementPage';
+import { OrgSettingsPage } from './pages/admin/OrgSettingsPage';
+import { AuditTrailPage } from './pages/admin/AuditTrailPage';
+
+// Milestone 5 System Pages
+import { AccessDeniedPage, NotFoundPage } from './pages/system/SystemPages';
+
+export function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Customer Routes */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/vehicles" element={<VehiclesPage />} />
+            <Route path="/vehicles/:vehicleId" element={<VehicleDetailPage />} />
+            <Route
+              path="/how-it-works"
+              element={
+                <div className="max-w-4xl mx-auto px-4 py-12">
+                  <PagePlaceholder
+                    title="How DriveFleet Works"
+                    subtitle="Learn our 3-step rental journey: Select Dates, Transparent Quote, and Fast Branch Handover."
+                    routeCode="FR-01 /how-it-works"
+                    actions={[{ label: 'Book a Car Now', to: '/vehicles', primary: true }]}
+                  />
+                </div>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <div className="max-w-4xl mx-auto px-4 py-12">
+                  <PagePlaceholder
+                    title="About DriveFleet Technologies Ltd."
+                    subtitle="Enterprise car rental & fleet operational management in Nigeria."
+                    routeCode="FR-01 /about"
+                  />
+                </div>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <div className="max-w-4xl mx-auto px-4 py-12">
+                  <PagePlaceholder
+                    title="Contact & Branch Directory"
+                    subtitle="Lagos Ikeja Main Hub and Abuja Central Terminal operational hours and support."
+                    routeCode="FR-01 /contact"
+                  />
+                </div>
+              }
+            />
+            <Route
+              path="/faq"
+              element={
+                <div className="max-w-4xl mx-auto px-4 py-12">
+                  <PagePlaceholder
+                    title="Frequently Asked Questions"
+                    subtitle="Answers on amendments, deposits, simulated checkout, and weekend surcharge rules."
+                    routeCode="FR-01 /faq"
+                  />
+                </div>
+              }
+            />
+            <Route
+              path="/terms"
+              element={
+                <div className="max-w-4xl mx-auto px-4 py-12">
+                  <PagePlaceholder
+                    title="Rental Terms & Operating SLA"
+                    subtitle="Comprehensive sample conditions for 24h cancellations, mileage caps, and insurance."
+                    routeCode="FR-01 /terms"
+                  />
+                </div>
+              }
+            />
+            <Route
+              path="/privacy"
+              element={
+                <div className="max-w-4xl mx-auto px-4 py-12">
+                  <PagePlaceholder
+                    title="Data Privacy Policy"
+                    subtitle="NDPR compliant handling of driver credentials and customer identity dossiers."
+                    routeCode="FR-01 /privacy"
+                  />
+                </div>
+              }
+            />
+
+            {/* Auth Routes */}
+            <Route
+              path="/login"
+              element={
+                <div className="max-w-md mx-auto px-4 py-16">
+                  <PagePlaceholder title="Customer Sign In" routeCode="FR-02 /login" />
+                </div>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <div className="max-w-md mx-auto px-4 py-16">
+                  <PagePlaceholder title="Create Account" routeCode="FR-02 /register" />
+                </div>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <div className="max-w-md mx-auto px-4 py-16">
+                  <PagePlaceholder title="Forgot Password" routeCode="FR-02 /forgot-password" />
+                </div>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <div className="max-w-md mx-auto px-4 py-16">
+                  <PagePlaceholder title="Reset Password" routeCode="FR-02 /reset-password" />
+                </div>
+              }
+            />
+            <Route
+              path="/verify-email"
+              element={
+                <div className="max-w-md mx-auto px-4 py-16">
+                  <PagePlaceholder title="Verify Email" routeCode="FR-02 /verify-email" />
+                </div>
+              }
+            />
+            <Route
+              path="/admin/login"
+              element={
+                <div className="max-w-md mx-auto px-4 py-16">
+                  <PagePlaceholder title="Staff / Operations Login" routeCode="FR-02 /admin/login" />
+                </div>
+              }
+            />
+
+            {/* Booking Flow */}
+            <Route path="/book/:vehicleId" element={<BookingWizardPage />} />
+            <Route path="/checkout" element={<CheckoutSimulatorPage />} />
+            <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
+
+            {/* Customer Account Sub-Routes */}
+            <Route element={<CustomerLayout />}>
+              <Route path="/account" element={<AccountOverviewPage />} />
+              <Route path="/account/bookings" element={<MyBookingsPage />} />
+              <Route path="/account/bookings/:bookingId" element={<BookingConfirmationPage />} />
+              <Route path="/account/profile" element={<ProfilePage />} />
+            </Route>
+
+            {/* System Screens */}
+            <Route path="/access-denied" element={<AccessDeniedPage />} />
+          </Route>
+
+          {/* Admin Operations with Admin Layout */}
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/vehicles" element={<FleetRegisterPage />} />
+            <Route
+              path="/admin/vehicles/new"
+              element={
+                <PagePlaceholder
+                  title="Provision New Fleet Vehicle"
+                  subtitle="Admin-only form for plate, category, rates, mileage allowance, and thresholds."
+                  routeCode="FR-04 /admin/vehicles/new"
+                />
+              }
+            />
+            <Route
+              path="/admin/vehicles/:vehicleId"
+              element={
+                <PagePlaceholder
+                  title="Vehicle Operational Dossier"
+                  subtitle="Specs, mileage telemetry, maintenance logs, and calendar history."
+                  routeCode="FR-04 /admin/vehicles/:id"
+                  actions={[{ label: 'Edit Vehicle', to: '/admin/vehicles/rav4-802/edit' }]}
+                />
+              }
+            />
+            <Route
+              path="/admin/vehicles/:vehicleId/edit"
+              element={
+                <PagePlaceholder
+                  title="Edit Vehicle Record"
+                  subtitle="Update specifications while preserving linked booking and odometer history."
+                  routeCode="FR-04 /admin/vehicles/:id/edit"
+                />
+              }
+            />
+            <Route path="/admin/calendar" element={<DispatchCalendarPage />} />
+            <Route
+              path="/admin/bookings"
+              element={
+                <PagePlaceholder
+                  title="Fleet Reservations & Booking Ledger"
+                  subtitle="Active and upcoming customer reservations across Lagos and Abuja dispatch nodes."
+                  routeCode="FR-08 /admin/bookings"
+                  actions={[
+                    { label: '+ Staff-Assisted Reservation', to: '/admin/bookings/new', primary: true },
+                    { label: 'Booking Detail', to: '/admin/bookings/DF-2026-9812' },
+                    { label: 'Pickup Handover SOP', to: '/admin/bookings/DF-2026-9812/pickup' },
+                    { label: 'Return Inspection SOP', to: '/admin/bookings/DF-2026-9812/return' },
+                  ]}
+                />
+              }
+            />
+            <Route
+              path="/admin/bookings/new"
+              element={
+                <PagePlaceholder
+                  title="Create Staff-Assisted Booking"
+                  subtitle="Select CRM customer, available vehicle, and calculate shared quote."
+                  routeCode="FR-08 /admin/bookings/new"
+                />
+              }
+            />
+            <Route
+              path="/admin/bookings/:bookingId"
+              element={
+                <PagePlaceholder
+                  title="Booking Operational Detail (#DF-2026-9812)"
+                  subtitle="Customer record, assigned vehicle, timeline, quote breakdown, and internal notes."
+                  routeCode="FR-08 /admin/bookings/:id"
+                  actions={[
+                    { label: 'Pickup Handover Form', to: '/admin/bookings/DF-2026-9812/pickup', primary: true },
+                    { label: 'Return Inspection Form', to: '/admin/bookings/DF-2026-9812/return' },
+                  ]}
+                />
+              }
+            />
+            <Route
+              path="/admin/bookings/:bookingId/edit"
+              element={
+                <PagePlaceholder
+                  title="Amend Reservation"
+                  subtitle="Operational date adjustments, reason logging, and revalidated pricing."
+                  routeCode="FR-08 /admin/bookings/:id/edit"
+                />
+              }
+            />
+            <Route path="/admin/bookings/:bookingId/pickup" element={<PickupHandoverPage />} />
+            <Route path="/admin/bookings/:bookingId/return" element={<ReturnInspectionPage />} />
+
+            <Route path="/admin/customers" element={<CustomerCrmPage />} />
+            <Route
+              path="/admin/customers/new"
+              element={
+                <PagePlaceholder
+                  title="Add CRM Customer Record"
+                  subtitle="Create customer contact and driver licensing dossier (independent from auth credentials)."
+                  routeCode="FR-10 /admin/customers/new"
+                />
+              }
+            />
+            <Route
+              path="/admin/customers/:customerId"
+              element={
+                <PagePlaceholder
+                  title="Customer Dossier: Chukwudi Adeyemi"
+                  subtitle="Enterprise corporate renter profile, verified FRSC license, and private staff notes."
+                  routeCode="FR-10 /admin/customers/:id"
+                />
+              }
+            />
+            <Route
+              path="/admin/customers/:customerId/edit"
+              element={
+                <PagePlaceholder
+                  title="Edit Customer CRM Profile"
+                  subtitle="Update contact or driver credentials while preserving rental history."
+                  routeCode="FR-10 /admin/customers/:id/edit"
+                />
+              }
+            />
+
+            <Route path="/admin/maintenance" element={<MaintenanceRegistryPage />} />
+            <Route
+              path="/admin/maintenance/new"
+              element={
+                <PagePlaceholder
+                  title="Schedule Maintenance Task"
+                  subtitle="Assign vehicle, service type, due mileage, and availability downtime block."
+                  routeCode="FR-11 /admin/maintenance/new"
+                />
+              }
+            />
+            <Route
+              path="/admin/maintenance/:maintenanceId"
+              element={
+                <PagePlaceholder
+                  title="Work Order: 40,000 km Scheduled Service"
+                  subtitle="Toyota Camry (LAG-104-AB) • Status: In Progress • Downtime Block Active"
+                  routeCode="FR-11 /admin/maintenance/:id"
+                />
+              }
+            />
+            <Route
+              path="/admin/maintenance/:maintenanceId/edit"
+              element={
+                <PagePlaceholder
+                  title="Update Maintenance Record"
+                  subtitle="Adjust work details or mark completed to release vehicle back to Ready state."
+                  routeCode="FR-11 /admin/maintenance/:id/edit"
+                />
+              }
+            />
+
+            {/* Admin Management Routes */}
+            <Route path="/admin/reports" element={<OperationalReportsPage />} />
+            <Route path="/admin/pricing" element={<PricingManagementPage />} />
+            <Route path="/admin/promos" element={<PromosManagementPage />} />
+            <Route path="/admin/users" element={<TeamManagementPage />} />
+            <Route path="/admin/settings" element={<OrgSettingsPage />} />
+            <Route path="/admin/activity" element={<AuditTrailPage />} />
+          </Route>
+
+          {/* Catch-all to 404 */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
