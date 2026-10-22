@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { addUserBooking, CustomerBooking } from '@/lib/userBookings';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
 import { calculateQuote } from '@/lib/pricing-engine';
 import { formatCurrency } from '@/lib/formatters';
@@ -7,7 +9,20 @@ import { Check, ShieldCheck, Lock, CreditCard, AlertCircle, RefreshCw, ArrowRigh
 
 export function CheckoutSimulatorPage() {
   const navigate = useNavigate();
-  const vehicle = DEMO_VEHICLES[0]; // Toyota RAV4
+  const { user } = useAuth();
+
+  const draftBookingStr = typeof window !== 'undefined' ? localStorage.getItem('drivefleet_draft_booking') : null;
+  let draftData: any = null;
+  if (draftBookingStr) {
+    try {
+      draftData = JSON.parse(draftBookingStr);
+    } catch {}
+  }
+
+  const vehicle = DEMO_VEHICLES.find((v) => v.id === draftData?.vehicleId) || DEMO_VEHICLES[0];
+  const pickupAt = draftData?.pickupAt || '2026-10-23T10:00:00Z';
+  const returnAt = draftData?.returnAt || '2026-10-26T10:00:00Z';
+  const hub = draftData?.hub || 'Lagos Ikeja Main Hub';
 
   // Mandatory Declarations Checkboxes
   const [agreeCancellation, setAgreeCancellation] = useState(true);
@@ -20,12 +35,12 @@ export function CheckoutSimulatorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const quote = calculateQuote({
+  const quote = draftData?.quote || calculateQuote({
     vehicleId: vehicle.id,
     category: vehicle.category,
     baseRateMinor: vehicle.baseRateMinor,
-    pickupAt: '2026-10-23T10:00:00Z',
-    returnAt: '2026-10-26T10:00:00Z',
+    pickupAt,
+    returnAt,
     promo: {
       id: 'p1',
       code: 'FLEETDEMO10',
@@ -45,7 +60,22 @@ export function CheckoutSimulatorPage() {
     setTimeout(() => {
       setIsSubmitting(false);
       if (simulationOutcome === 'approved') {
-        navigate('/booking-confirmation/DF-2026-9812');
+        const bookingRef = 'DF-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+        const newBooking: CustomerBooking = {
+          id: bookingRef,
+          vehicle: `${vehicle.make} ${vehicle.model} (${vehicle.year})`,
+          plate: vehicle.plate,
+          category: vehicle.category,
+          status: 'confirmed',
+          dates: `${quote.billedPeriods} Days (${pickupAt.split('T')[0]} → ${returnAt.split('T')[0]})`,
+          pickupAt,
+          returnAt,
+          hub,
+          amountMinor: quote.totalMinor,
+          image: vehicle.images?.[0] || 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=600',
+        };
+        addUserBooking(user?.email || draftData?.email || 'chukwudi@drivefleet.demo', newBooking);
+        navigate(`/booking-confirmation/${bookingRef}`);
       } else if (simulationOutcome === 'conflict') {
         setErrorMessage(
           'AVAILABILITY_CONFLICT: Another reservation (or planned maintenance block) was committed for this vehicle interval concurrently. Your draft inputs have been safely preserved.'
@@ -76,7 +106,7 @@ export function CheckoutSimulatorPage() {
               </span>
             </div>
             <p className="text-[11px] text-slate-600 mt-0.5">
-              Simulated reservation dispatch adhering to PRD 7.3, 8, & 9.5. Verifies deterministic pricing locks, strict idempotency enforcement, and race condition resiliency.
+              Secure reservation dispatch verifying deterministic pricing locks, strict idempotency enforcement, and race condition resiliency.
             </p>
           </div>
         </div>
@@ -115,18 +145,18 @@ export function CheckoutSimulatorPage() {
                     Plate: {vehicle.plate}
                   </span>
                 </div>
-                <h4 className="text-base font-bold text-slate-900">2024 Toyota RAV4 XLE AWD</h4>
+                <h4 className="text-base font-bold text-slate-900">{vehicle.make} {vehicle.model} ({vehicle.year})</h4>
                 <div className="text-xs text-slate-500">
-                  5 Adult Seats • 8-Spd / eCVT • Intelligent AWD • eCVT Hybrid Drive
+                  {vehicle.seats} Adult Seats • {vehicle.transmission} • {vehicle.category.toUpperCase()} Class
                 </div>
                 <div className="text-xs text-blue-700 font-medium pt-1">
-                  📍 Lagos Ikeja Main Hub (GRA, Lagos) → Same Depot Return
+                  📍 {hub} → Same Depot Return
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Mandatory Rental Declarations (PRD Section 15 & Acceptance Criteria) */}
+          {/* Mandatory Rental Declarations */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">Mandatory Rental Declarations</h3>
@@ -277,7 +307,7 @@ export function CheckoutSimulatorPage() {
                     className="mr-2 text-amber-600"
                   />
                   <strong className="block text-xs">2. Race Overlap Conflict</strong>
-                  <span className="text-[10px] text-slate-500">Simulate concurrent booking collision PRD 9.2</span>
+                  <span className="text-[10px] text-slate-500">Simulate concurrent booking collision</span>
                 </label>
 
                 <label
@@ -347,7 +377,7 @@ export function CheckoutSimulatorPage() {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Rate Lock Active (14:28 Remaining)
               </span>
-              <span className="text-[11px] text-slate-400 font-mono">PRD §9.3</span>
+              <span className="text-[11px] text-slate-400 font-mono">Transparent Quote</span>
             </div>
 
             <div className="space-y-2 text-xs text-slate-600">

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
 import { calculateQuote } from '@/lib/pricing-engine';
 import { formatCurrency } from '@/lib/formatters';
 import { useAuth, DEFAULT_CREDENTIALS } from '@/contexts/AuthContext';
+import { getSavedSearchCriteria } from '@/lib/userBookings';
 import {
   Check,
   ShieldCheck,
@@ -21,10 +22,21 @@ import {
 
 export function BookingWizardPage() {
   const { vehicleId } = useParams<{ vehicleId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, isAuthenticated, login, register } = useAuth();
 
   const vehicle = DEMO_VEHICLES.find((v) => v.id === vehicleId) || DEMO_VEHICLES[0];
+  const criteria = getSavedSearchCriteria();
+
+  const hub = searchParams.get('hub') || criteria.hub || 'Lagos Ikeja Main Hub';
+  const pickupDate = searchParams.get('pickupDate') || criteria.pickupDate;
+  const pickupTime = searchParams.get('pickupTime') || criteria.pickupTime || '10:00';
+  const returnDate = searchParams.get('returnDate') || criteria.returnDate;
+  const returnTime = searchParams.get('returnTime') || criteria.returnTime || '10:00';
+
+  const pickupAt = `${pickupDate}T${pickupTime}:00Z`;
+  const returnAt = `${returnDate}T${returnTime}:00Z`;
 
   // Auth mode for guest users: 'register' | 'login'
   const [authMode, setAuthMode] = useState<'register' | 'login'>('register');
@@ -62,8 +74,8 @@ export function BookingWizardPage() {
     vehicleId: vehicle.id,
     category: vehicle.category,
     baseRateMinor: vehicle.baseRateMinor,
-    pickupAt: '2026-10-23T10:00:00Z',
-    returnAt: '2026-10-26T10:00:00Z',
+    pickupAt,
+    returnAt,
     promo: {
       id: 'p1',
       code: 'FLEETDEMO10',
@@ -134,6 +146,13 @@ export function BookingWizardPage() {
         phone,
         licenseNumber,
         nationalId,
+        hub,
+        pickupAt,
+        returnAt,
+        pickupDate,
+        pickupTime,
+        returnDate,
+        returnTime,
         quote,
       })
     );
@@ -414,15 +433,15 @@ export function BookingWizardPage() {
             <div className="space-y-2 text-xs text-slate-600">
               <div className="flex justify-between">
                 <span>Dispatch Hub:</span>
-                <span className="font-medium text-slate-900">Lagos Ikeja Main Hub</span>
+                <span className="font-medium text-slate-900">{hub}</span>
               </div>
               <div className="flex justify-between">
                 <span>Rental Dates:</span>
-                <span className="font-medium text-slate-900">Oct 23 - Oct 26, 2026 (72h)</span>
+                <span className="font-medium text-slate-900">{pickupDate} → {returnDate}</span>
               </div>
               <div className="flex justify-between">
-                <span>Rate Calculation:</span>
-                <span className="font-medium text-slate-900">1 Weekday + 2 Weekend Days (+10%)</span>
+                <span>Duration Interval:</span>
+                <span className="font-medium text-slate-900">{quote.billedPeriods} Day{quote.billedPeriods > 1 ? 's' : ''} Cycle</span>
               </div>
               <div className="flex justify-between text-emerald-600 font-semibold">
                 <span>Promo Discount (FLEETDEMO10):</span>

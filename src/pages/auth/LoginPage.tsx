@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth, DEFAULT_CREDENTIALS } from '@/contexts/AuthContext';
-import { LogIn, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogIn, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
 
 export function LoginPage() {
   const { login, isAuthenticated, user } = useAuth();
@@ -45,12 +45,6 @@ export function LoginPage() {
     }
   };
 
-  const handleQuickFill = () => {
-    setEmail(DEFAULT_CREDENTIALS.customer.email);
-    setPassword(DEFAULT_CREDENTIALS.customer.password);
-    setError(null);
-  };
-
   return (
     <div className="min-h-[calc(100vh-16rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -65,26 +59,6 @@ export function LoginPage() {
           <p className="mt-2 text-xs sm:text-sm text-slate-600">
             Access your bookings, manage rental reservations, and review vehicle dossiers.
           </p>
-        </div>
-
-        {/* Demo Quick-Fill Pill Card */}
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-900 flex items-center justify-between gap-3 shadow-sm">
-          <div>
-            <div className="font-bold flex items-center gap-1.5 text-blue-950">
-              <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>Sample Customer Credentials</span>
-            </div>
-            <div className="text-blue-700 text-[11px] mt-0.5 font-mono">
-              {DEFAULT_CREDENTIALS.customer.email}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleQuickFill}
-            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-sm"
-          >
-            Auto Fill
-          </button>
         </div>
 
         {/* Error notification */}

@@ -57,7 +57,7 @@ export function VehicleDetailPage() {
 
         <div className="flex items-center gap-2 font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
           <Lock className="w-3 h-3 text-emerald-600" />
-          <span>Guaranteed Atomic Lock Active (PRD Sec 9.2)</span>
+          <span>Guaranteed Real-Time Hold Active</span>
         </div>
       </div>
 
@@ -204,7 +204,7 @@ export function VehicleDetailPage() {
             <h4 className="font-bold text-slate-900 text-sm">Rental Conditions & Fleet SLA</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <strong className="text-slate-800">24-Hour Cancellation Window:</strong> Free cancellations permitted up to 24 hours prior to pickup (PRD Sec 15).
+                <strong className="text-slate-800">24-Hour Cancellation Window:</strong> Free cancellations permitted up to 24 hours prior to pickup.
               </div>
               <div>
                 <strong className="text-slate-800">Full-to-Full Fuel Standard:</strong> Vehicle dispatched at 8/8 full tank; return at 8/8 to avoid refuel fee.
@@ -225,7 +225,7 @@ export function VehicleDetailPage() {
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-5">
               <div className="text-[10px] uppercase font-bold tracking-wider text-blue-200">
-                Pricing Engine 1.0 • PRD Compliant
+                Transparent Dynamic Pricing Guarantee
               </div>
               <h3 className="text-lg font-black tracking-tight mt-0.5">
                 Real-Time Quote Summary
@@ -255,10 +255,10 @@ export function VehicleDetailPage() {
                 </div>
               </div>
 
-              {/* Itemized Calculation (PRD 9.3/9.4) */}
+              {/* Itemized Calculation */}
               <div className="space-y-2.5 text-xs text-slate-600">
                 <div className="font-bold text-slate-900 text-[11px] uppercase tracking-wider">
-                  Itemized Rule Breakdown (Section 9.3 / 9.4)
+                  Itemized Rule Breakdown
                 </div>
 
                 {quote.lineItems.map((item, idx) => (

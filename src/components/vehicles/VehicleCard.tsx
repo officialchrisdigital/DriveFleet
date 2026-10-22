@@ -6,16 +6,38 @@ import { Users, Fuel, Gauge, CheckCircle2, ShieldCheck, MapPin } from 'lucide-re
 
 interface VehicleCardProps {
   vehicle: Vehicle;
+  days?: number;
   pickupDate?: string;
+  pickupTime?: string;
   returnDate?: string;
+  returnTime?: string;
+  hub?: string;
 }
 
-export function VehicleCard({ vehicle, pickupDate, returnDate }: VehicleCardProps) {
-  const estimatedDays = 3;
-  // Sample 3-day calculation: Friday + Sat + Sun (Weekend +10% rule)
-  // Base + Base*1.1 + Base*1.1 = 3.2 * Base
-  const weekendMultiplier = 3.2;
-  const quoteMinor = Math.round(vehicle.baseRateMinor * weekendMultiplier);
+export function VehicleCard({
+  vehicle,
+  days = 3,
+  pickupDate,
+  pickupTime = '10:00',
+  returnDate,
+  returnTime = '10:00',
+  hub,
+}: VehicleCardProps) {
+  // Estimate quote based on rental days:
+  // PRD duration tiers: 7-29 days = 10% off; 30+ days = 20% off
+  const durationDiscount = days >= 30 ? 0.8 : days >= 7 ? 0.9 : 1.0;
+  // Estimate average weekend proportion (approx 2 weekend days per 7 days)
+  const weekendFactor = days <= 3 ? 1.07 : 1.04;
+  const quoteMinor = Math.round(vehicle.baseRateMinor * days * weekendFactor * durationDiscount);
+
+  const queryParams = new URLSearchParams();
+  if (pickupDate) queryParams.set('pickupDate', pickupDate);
+  if (pickupTime) queryParams.set('pickupTime', pickupTime);
+  if (returnDate) queryParams.set('returnDate', returnDate);
+  if (returnTime) queryParams.set('returnTime', returnTime);
+  if (hub) queryParams.set('hub', hub);
+
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col group">
@@ -90,23 +112,26 @@ export function VehicleCard({ vehicle, pickupDate, returnDate }: VehicleCardProp
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-slate-600 bg-blue-50/60 p-2 rounded-lg border border-blue-100/50 mb-3">
-            <span>3 Days Demo Quote (Oct 18-21):</span>
+            <span>
+              Estimated {days} Day{days > 1 ? 's' : ''} Total:
+            </span>
             <span className="font-bold text-blue-700">
-              {formatCurrency(quoteMinor)}{' '}
-              <span className="text-[9px] uppercase font-semibold text-blue-600">(Weekend Rule)</span>
+              {formatCurrency(quoteMinor)}
+              {days >= 7 && (
+                <span className="ml-1 text-[9px] uppercase font-semibold text-emerald-600">
+                  ({days >= 30 ? '-20% Tier' : '-10% Tier'})
+                </span>
+              )}
             </span>
           </div>
 
           <Link
-            to={`/vehicles/${vehicle.id}`}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-colors"
+            to={`/book/${vehicle.id}${queryString}`}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"
           >
-            <span>Reserve & Book</span>
-            <span>→</span>
+            <span>Reserve This Vehicle</span>
+            <span className="text-blue-200">→</span>
           </Link>
-          <span className="block text-[10px] text-center text-slate-400 mt-1.5">
-            Simulated demo checkout • No deposit charged now
-          </span>
         </div>
       </div>
     </div>

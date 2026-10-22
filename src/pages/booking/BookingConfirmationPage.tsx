@@ -42,7 +42,7 @@ export function BookingConfirmationPage() {
           </div>
           <div className="text-[10px] text-slate-500 mt-1 flex items-center justify-center sm:justify-end gap-1">
             <ShieldCheck className="w-3 h-3 text-emerald-600" />
-            <span>Zero-Collision Guarantee (PRD FR-06)</span>
+            <span>Instant Guaranteed Reservation</span>
           </div>
         </div>
       </div>
@@ -189,7 +189,7 @@ export function BookingConfirmationPage() {
                 <span className="text-sm font-black text-slate-900">Immutable Price Ledger</span>
               </div>
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                PRD §9.3
+                Verified Itemized Quote
               </span>
             </div>
 

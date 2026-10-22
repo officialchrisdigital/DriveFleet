@@ -135,7 +135,7 @@ export function HomePage() {
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span>
-                  Rule Applied: <strong className="text-slate-800">Weekend +10% Rate Rule</strong> active for Saturday/Sunday starts (PRD Section 9.3).
+                  Rule Applied: <strong className="text-slate-800">Weekend +10% Rate Rule</strong> active for Saturday/Sunday starts.
                 </span>
               </div>
               <div className="flex items-center gap-4 text-[11px]">

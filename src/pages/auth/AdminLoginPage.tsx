@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth, DEFAULT_CREDENTIALS } from '@/contexts/AuthContext';
-import { ShieldCheck, Eye, EyeOff, ArrowRight, AlertCircle, KeyRound, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { ShieldCheck, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 
 export function AdminLoginPage() {
   const { login, isAuthenticated, role } = useAuth();
@@ -39,24 +39,6 @@ export function AdminLoginPage() {
     }
   };
 
-  const fillAdmin = () => {
-    setEmail(DEFAULT_CREDENTIALS.admin.email);
-    setPassword(DEFAULT_CREDENTIALS.admin.password);
-    setError(null);
-  };
-
-  const fillStaffLagos = () => {
-    setEmail(DEFAULT_CREDENTIALS.staffLagos.email);
-    setPassword(DEFAULT_CREDENTIALS.staffLagos.password);
-    setError(null);
-  };
-
-  const fillStaffAbuja = () => {
-    setEmail(DEFAULT_CREDENTIALS.staffAbuja.email);
-    setPassword(DEFAULT_CREDENTIALS.staffAbuja.password);
-    setError(null);
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full mx-auto space-y-8">
@@ -71,49 +53,6 @@ export function AdminLoginPage() {
           <p className="mt-2 text-xs sm:text-sm text-slate-400">
             Restricted administrative and dispatch personnel portal. Multi-branch operational control.
           </p>
-        </div>
-
-        {/* Quick Credentials Pills */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-blue-400" />
-              <span>Default Operations Accounts</span>
-            </span>
-            <span className="text-emerald-400 font-mono text-[10px]">Ready</span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={fillAdmin}
-              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-xl p-2 text-left transition-all group"
-            >
-              <div className="text-[10px] font-bold text-amber-400 uppercase">Admin</div>
-              <div className="text-xs font-semibold text-white truncate group-hover:text-blue-300">Marcus</div>
-              <div className="text-[9px] text-slate-500 font-mono">Full Access</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={fillStaffLagos}
-              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-xl p-2 text-left transition-all group"
-            >
-              <div className="text-[10px] font-bold text-blue-400 uppercase">Staff</div>
-              <div className="text-xs font-semibold text-white truncate group-hover:text-blue-300">Amara</div>
-              <div className="text-[9px] text-slate-500 font-mono">Lagos Hub</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={fillStaffAbuja}
-              className="bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-xl p-2 text-left transition-all group"
-            >
-              <div className="text-[10px] font-bold text-emerald-400 uppercase">Staff</div>
-              <div className="text-xs font-semibold text-white truncate group-hover:text-blue-300">Ibrahim</div>
-              <div className="text-[9px] text-slate-500 font-mono">Abuja Hub</div>
-            </button>
-          </div>
         </div>
 
         {/* Error notification */}
