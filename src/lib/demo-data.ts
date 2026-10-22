@@ -364,4 +364,28 @@ export const DEMO_VEHICLES: Vehicle[] = [
     ],
     createdAt: new Date().toISOString(),
   },
+  {
+    id: 'velar-715',
+    branchId: 'b0000000-0000-0000-0000-000000000002',
+    branch: DEMO_BRANCHES[1],
+    make: 'Land Rover',
+    model: 'Range Rover Velar R-Dynamic',
+    year: 2024,
+    plate: 'ABJ-715-RR',
+    plateNormalized: 'ABJ715RR',
+    category: 'luxury',
+    seats: 5,
+    transmission: 'automatic',
+    fuelType: 'petrol',
+    baseRateMinor: 11500000, // NGN 115,000 / day
+    mileageAllowanceKm: 250,
+    currentOdometerKm: 13500,
+    operationalState: 'ready',
+    archived: false,
+    serviceThresholds: { nextServiceKm: 25000 },
+    images: [
+      'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&q=80&w=1000',
+    ],
+    createdAt: new Date().toISOString(),
+  },
 ];

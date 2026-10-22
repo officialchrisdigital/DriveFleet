@@ -77,7 +77,7 @@ const milestones = [
   { year: '2021', event: 'Opened Abuja Central Terminal, becoming a dual-city operation serving the Lagos–Abuja corridor.' },
   { year: '2022', event: 'Introduced the Luxury tier (Mercedes-Benz, Lexus, BMW) to serve executive and diplomatic clients.' },
   { year: '2023', event: 'Launched DriveFleet Online — the web booking platform with instant pricing and atomic availability checks.' },
-  { year: '2024', event: 'Grew fleet to 12 vehicles with full maintenance scheduling, CRM integration, and operational analytics.' },
+  { year: '2024', event: 'Grew fleet to 15 vehicles with full maintenance scheduling, CRM integration, and operational analytics.' },
   { year: '2026', event: 'Launched DriveFleet 2.0 — full-stack fleet management with structured inspection SOPs, promo engine, and audit trail.' },
 ];
 
@@ -121,7 +121,7 @@ export function AboutPage() {
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 text-center space-y-6">
             <div>
-              <div className="text-4xl font-extrabold text-blue-700">14</div>
+              <div className="text-4xl font-extrabold text-blue-700">15</div>
               <div className="text-sm text-slate-600 mt-1">Vehicles across 4 categories</div>
             </div>
             <div className="border-t border-blue-200 pt-4">

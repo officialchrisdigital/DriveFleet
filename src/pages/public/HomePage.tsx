@@ -155,23 +155,34 @@ export function HomePage() {
               Featured Active Fleet Units
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Real-time vehicle availability from Lagos Ikeja and Abuja Terminal nodes.
+              Displaying 9 featured models across Lagos Ikeja and Abuja Terminal nodes.
             </p>
           </div>
 
           <Link
             to="/vehicles"
-            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group"
           >
-            <span>View All 14 Fleet Vehicles</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>View All 15 Fleet Vehicles</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {DEMO_VEHICLES.map((vehicle) => (
+          {DEMO_VEHICLES.slice(0, 9).map((vehicle) => (
             <VehicleCard key={vehicle.id} vehicle={vehicle} />
           ))}
+        </div>
+
+        {/* View All Fleet Vehicles CTA Bar */}
+        <div className="mt-8 text-center">
+          <Link
+            to="/vehicles"
+            className="inline-flex items-center gap-2 bg-slate-900 hover:bg-blue-600 text-white font-bold text-xs sm:text-sm px-6 py-3.5 rounded-xl shadow-md transition-all hover:scale-[1.01]"
+          >
+            <span>View All 15 Fleet Vehicles</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 
