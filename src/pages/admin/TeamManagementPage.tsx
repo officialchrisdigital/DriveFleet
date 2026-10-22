@@ -41,7 +41,7 @@ export function TeamManagementPage() {
       const activeAdmins = team.filter((u) => u.role === 'admin' && u.active);
       if (activeAdmins.length <= 1) {
         alert(
-          'LAST_ADMIN_PROTECTED: Cannot deactivate or demote the last remaining active administrator (PRD FR-13 / Database Trigger trg_last_admin_protect).'
+          'LAST_ADMIN_PROTECTED: Cannot deactivate or demote the last remaining active administrator.'
         );
         return;
       }
@@ -62,7 +62,7 @@ export function TeamManagementPage() {
               Team Members & Role Access Control
             </h1>
             <span className="text-[10px] font-bold text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-              PRD FR-13
+              Access Control
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">

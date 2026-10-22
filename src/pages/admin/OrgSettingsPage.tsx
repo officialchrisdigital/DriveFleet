@@ -29,7 +29,7 @@ export function OrgSettingsPage() {
             Enterprise Organization Settings
           </h1>
           <span className="text-[10px] font-bold text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-            PRD FR-13
+            Enterprise Control
           </span>
         </div>
         <p className="text-xs text-slate-500 mt-1">
@@ -96,7 +96,7 @@ export function OrgSettingsPage() {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-blue-600" />
-            <span>Rental & Cancellation Policies (PRD Section 15)</span>
+            <span>Rental & Cancellation Policies</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">

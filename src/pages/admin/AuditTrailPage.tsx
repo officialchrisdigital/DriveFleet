@@ -70,7 +70,7 @@ export function AuditTrailPage() {
               Operational Audit Trail & Ledger
             </h1>
             <span className="text-[10px] font-bold text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-              PRD §11 / FR-14
+              Immutable Ledger
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">

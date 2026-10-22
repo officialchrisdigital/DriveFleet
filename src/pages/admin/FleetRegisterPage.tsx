@@ -12,53 +12,7 @@ export function FleetRegisterPage() {
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedState, setSelectedState] = useState('all');
 
-  const vehicles = [
-    ...DEMO_VEHICLES,
-    {
-      id: 'corolla-482',
-      branchId: 'b0000000-0000-0000-0000-000000000001',
-      branch: DEMO_VEHICLES[0].branch,
-      make: 'Toyota',
-      model: 'Corolla LE',
-      year: 2023,
-      plate: 'LAG-482-XY',
-      plateNormalized: 'LAG482XY',
-      category: 'sedan',
-      seats: 5,
-      transmission: 'automatic',
-      fuelType: 'petrol',
-      baseRateMinor: 3500000,
-      mileageAllowanceKm: 200,
-      currentOdometerKm: 24150,
-      operationalState: 'ready',
-      archived: false,
-      serviceThresholds: { nextServiceKm: 25000 },
-      images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&q=80&w=600'],
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'civic-504',
-      branchId: 'b0000000-0000-0000-0000-000000000001',
-      branch: DEMO_VEHICLES[0].branch,
-      make: 'Honda',
-      model: 'Civic (2021)',
-      year: 2021,
-      plate: 'LAG-504-HC',
-      plateNormalized: 'LAG504HC',
-      category: 'sedan',
-      seats: 5,
-      transmission: 'automatic',
-      fuelType: 'petrol',
-      baseRateMinor: 3000000,
-      mileageAllowanceKm: 200,
-      currentOdometerKm: 88320,
-      operationalState: 'ready',
-      archived: true,
-      serviceThresholds: {},
-      images: ['https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&q=80&w=600'],
-      createdAt: new Date().toISOString(),
-    },
-  ];
+  const vehicles = DEMO_VEHICLES;
 
   const filtered = vehicles.filter((v) => {
     if (selectedState !== 'all' && v.operationalState !== selectedState) return false;
@@ -82,7 +36,7 @@ export function FleetRegisterPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Fleet Register & Inventory Management</h1>
             <span className="text-[10px] font-bold text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-              FR-04 Compliance
+              Active Inventory
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">

@@ -26,7 +26,7 @@ export function OperationalReportsPage() {
               Operational Reports & Fleet Analytics
             </h1>
             <span className="text-[10px] font-bold text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-              PRD §10 / FR-12
+              BI Analytics
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
@@ -198,12 +198,12 @@ export function OperationalReportsPage() {
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span className="text-[10px] uppercase font-bold text-amber-600">Maintenance Downtime Deduction</span>
               <div className="text-2xl font-black text-amber-600 mt-1">216 hrs</div>
-              <span className="text-[10px] text-slate-500 mt-1 block">Deducted from denominator per PRD §10</span>
+              <span className="text-[10px] text-slate-500 mt-1 block">Deducted from available denominator</span>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3 text-xs text-slate-600">
-            <h3 className="font-bold text-slate-900 text-sm">PRD Section 10 Utilization Compliance Standard</h3>
+            <h3 className="font-bold text-slate-900 text-sm">Fleet Utilization Standard</h3>
             <p className="leading-relaxed">
               Utilization is calculated strictly as: <code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-blue-700 font-bold">Rented Hours ÷ Rentable Fleet Hours</code>.
               Rentable fleet hours subtract the union of verified scheduled maintenance and out-of-service quarantine windows without double-deducting overlaps.

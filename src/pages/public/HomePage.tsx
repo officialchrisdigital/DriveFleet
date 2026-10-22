@@ -123,10 +123,10 @@ export function HomePage() {
 
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-colors text-xs self-end h-[42px]"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 sm:px-5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-colors text-xs self-end h-[42px] shrink-0"
                 >
                   <Search className="w-4 h-4" />
-                  <span className="hidden sm:inline">Find Cars</span>
+                  <span>Find Cars</span>
                 </button>
               </div>
             </form>

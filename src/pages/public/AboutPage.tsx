@@ -121,7 +121,7 @@ export function AboutPage() {
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-8 text-center space-y-6">
             <div>
-              <div className="text-4xl font-extrabold text-blue-700">12+</div>
+              <div className="text-4xl font-extrabold text-blue-700">14</div>
               <div className="text-sm text-slate-600 mt-1">Vehicles across 4 categories</div>
             </div>
             <div className="border-t border-blue-200 pt-4">
@@ -162,12 +162,18 @@ export function AboutPage() {
             <h2 className="text-2xl font-bold text-slate-900">Our Journey</h2>
             <p className="text-slate-500 text-sm mt-2">Key milestones from startup to full-stack fleet management.</p>
           </div>
-          <div className="relative pl-8 border-l-2 border-blue-200 space-y-8">
+          <div className="space-y-6 relative before:absolute before:inset-0 before:left-[19px] sm:before:left-[21px] before:w-0.5 before:bg-blue-200">
             {milestones.map((m) => (
-              <div key={m.year} className="relative">
-                <div className="absolute -left-[1.6rem] top-1 w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow" />
-                <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">{m.year}</div>
-                <p className="text-sm text-slate-600 leading-relaxed">{m.event}</p>
+              <div key={m.year} className="relative flex items-start gap-4 sm:gap-6">
+                {/* Timeline node */}
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 border-2 border-blue-600 shadow-sm shrink-0 z-10 flex items-center justify-center mt-1">
+                  <div className="w-3 h-3 rounded-full bg-blue-600" />
+                </div>
+                {/* Card with milestone info */}
+                <div className="flex-1 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1.5">{m.year}</div>
+                  <p className="text-sm text-slate-700 leading-relaxed">{m.event}</p>
+                </div>
               </div>
             ))}
           </div>

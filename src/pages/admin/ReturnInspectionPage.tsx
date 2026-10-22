@@ -40,7 +40,7 @@ export function ReturnInspectionPage() {
     setTimeout(() => {
       setIsSubmitting(false);
       if (!vehicleSafe) {
-        alert('Inspection Completed: Vehicle marked UNSAFE. Automatically quarantined to In Maintenance state (PRD FR-11).');
+        alert('Inspection Completed: Vehicle marked UNSAFE. Automatically quarantined to In Maintenance state.');
       } else {
         alert('Inspection Completed: Rental marked COMPLETED. Vehicle returned to READY for pickup.');
       }
@@ -130,7 +130,7 @@ export function ReturnInspectionPage() {
             </select>
           </div>
 
-          {/* Safety & Damage Assessment (PRD FR-11 Integration) */}
+          {/* Safety & Damage Assessment */}
           <div className="p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
             <div className="font-bold text-slate-900 flex items-center justify-between">
               <span>Vehicle Operational Condition Disposition</span>

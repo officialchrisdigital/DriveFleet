@@ -48,7 +48,7 @@ export function PricingManagementPage() {
               Pricing Rules & Date Override Engine
             </h1>
             <span className="text-[10px] font-bold text-blue-700 uppercase px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
-              PRD §9.3 & §9.4 Compliant
+              Deterministic Engine Active
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
@@ -73,7 +73,7 @@ export function PricingManagementPage() {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-blue-600" />
-                <span>Deterministic Weekend Rate Rule (PRD §9.3)</span>
+                <span>Deterministic Weekend Rate Rule</span>
               </h3>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                 Active System Rule
@@ -129,7 +129,7 @@ export function PricingManagementPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
             <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
               <Calculator className="w-4 h-4 text-blue-600" />
-              <h3 className="text-sm font-bold text-slate-900">PRD §9.4 Rule Verification Sandbox</h3>
+              <h3 className="text-sm font-bold text-slate-900">Rate Calculation Verification Sandbox</h3>
             </div>
 
             <div className="space-y-3 text-xs">
@@ -168,7 +168,7 @@ export function PricingManagementPage() {
               <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 space-y-1">
                 <div className="font-bold flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Acceptance Test 2 Verified (PRD §9.4):</span>
+                  <span>Verified Standard 72-Hour Interval:</span>
                 </div>
                 <p>
                   Base NGN 30,000 for Friday 10:00 to Monday 10:00 calculates exactly as: 30,000 + 33,000 + 33,000 = <strong>NGN 96,000</strong>.

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -15,12 +16,15 @@ import {
   LogOut,
   ExternalLink,
   ShieldAlert,
+  Menu,
+  X,
 } from 'lucide-react';
 
 export function AdminLayout() {
   const { role, user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const isStaffOrAdmin = role === 'staff' || role === 'admin';
   const isAdmin = role === 'admin';
@@ -84,8 +88,20 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans">
-      {/* Dark Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0">
+      {/* Mobile Drawer Overlay */}
+      {mobileNavOpen && (
+        <div
+          onClick={() => setMobileNavOpen(false)}
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-40 lg:hidden"
+        />
+      )}
+
+      {/* Dark Sidebar (Desktop Fixed + Mobile Drawer) */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-200 lg:static lg:translate-x-0 shrink-0 ${
+          mobileNavOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
+      >
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img
@@ -100,6 +116,14 @@ export function AdminLayout() {
               </span>
             </div>
           </Link>
+
+          <button
+            onClick={() => setMobileNavOpen(false)}
+            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Hub selector / active node */}
@@ -134,6 +158,7 @@ export function AdminLayout() {
               <Link
                 key={item.path}
                 to={item.path!}
+                onClick={() => setMobileNavOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   isActive
                     ? 'bg-blue-600 text-white font-semibold shadow-sm'
@@ -187,11 +212,20 @@ export function AdminLayout() {
       {/* Main Workspace Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         {/* Ops Header Bar */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center gap-4">
+        <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Hamburger Button on Mobile */}
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              PRD 9.2 Real-Time Concurrency Enforced
+              <span>Real-Time Concurrency Active</span>
             </span>
           </div>
 
@@ -207,10 +241,10 @@ export function AdminLayout() {
 
             <button
               onClick={handleLogout}
-              className="hidden sm:flex text-xs font-semibold text-slate-600 hover:text-red-600 bg-slate-100 hover:bg-red-50 border border-slate-200 px-3 py-1.5 rounded-lg items-center gap-1.5 transition-colors"
+              className="text-xs font-semibold text-slate-600 hover:text-red-600 bg-slate-100 hover:bg-red-50 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
+              <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </header>

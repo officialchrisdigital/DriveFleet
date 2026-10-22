@@ -48,8 +48,8 @@ export function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards Row (Exact Mockup Match) */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      {/* KPI Cards Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="text-[11px] font-bold uppercase text-slate-400">Total Fleet</div>
           <div className="text-2xl font-black text-slate-900 mt-1">32</div>

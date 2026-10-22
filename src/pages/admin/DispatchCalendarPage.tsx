@@ -140,7 +140,7 @@ export function DispatchCalendarPage() {
             </h1>
             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
               <Lock className="w-3 h-3 text-emerald-600" />
-              <span>PRD 9.2 Half-Open Guard Enforced</span>
+              <span>Half-Open Availability Guard Enforced</span>
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">

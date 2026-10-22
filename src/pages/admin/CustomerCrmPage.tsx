@@ -74,7 +74,7 @@ export function CustomerCrmPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Customer CRM Directory</h1>
             <span className="text-[10px] font-bold text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-              PRD FR-10
+              CRM Active
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">

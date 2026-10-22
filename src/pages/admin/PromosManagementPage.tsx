@@ -49,7 +49,7 @@ export function PromosManagementPage() {
               Promotions & Voucher Management
             </h1>
             <span className="text-[10px] font-bold text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-              PRD §9.3 Promo Rules
+              Promotions Active
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
@@ -128,7 +128,7 @@ export function PromosManagementPage() {
       </div>
 
       <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-1">
-        <div className="font-bold text-slate-800">PRD Promo Enforcement Constraints:</div>
+        <div className="font-bold text-slate-800">Promotional Discount Rules:</div>
         <div>• At most <strong>one promo code</strong> is applicable per booking version.</div>
         <div>• Promos apply strictly <em>after</em> the duration discount tier (7d=10%, 30d=20%).</div>
         <div>• Fixed promos are capped at the eligible rental charge and cannot produce a negative amount.</div>
