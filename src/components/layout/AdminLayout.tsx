@@ -234,9 +234,10 @@ export function AdminLayout() {
               <Menu className="w-5 h-5" />
             </button>
 
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+            <span className="text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 whitespace-nowrap">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Real-Time Concurrency Active</span>
+              <span className="hidden sm:inline">Real-Time Concurrency Active</span>
+              <span className="sm:hidden">Live</span>
             </span>
           </div>
 

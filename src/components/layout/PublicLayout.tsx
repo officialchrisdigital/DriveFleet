@@ -23,37 +23,37 @@ export function PublicLayout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans overflow-x-hidden">
       {/* Main Navbar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Hub Badge */}
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
             <Link to="/" className="flex items-center gap-2">
               <img
                 src="/drivefleet_logo_icon.png"
                 alt="DriveFleet logo"
-                className="w-8 h-8 object-contain"
+                className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
               />
-              <span className="text-xl font-bold tracking-tight text-slate-900">
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
                 Drive<span className="text-blue-600">Fleet</span>
               </span>
             </Link>
 
-            <div className="hidden xl:flex items-center gap-1.5 bg-slate-100 rounded-lg px-2.5 py-1 text-xs text-slate-600 border border-slate-200">
+            <div className="hidden 2xl:flex items-center gap-1.5 bg-slate-100 rounded-lg px-2.5 py-1 text-xs text-slate-600 border border-slate-200">
               <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
               <span>Lagos Ikeja Main Branch</span>
             </div>
           </div>
 
           {/* Center Nav Links (Visible on large screens) */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-600 shrink-0">
+          <nav className="hidden lg:flex items-center gap-4 xl:gap-7 text-xs xl:text-sm font-medium text-slate-600 shrink-0">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
                 className={`transition-colors hover:text-blue-600 ${
-                  location.pathname === link.to ? 'text-blue-600 font-semibold' : ''
+                  location.pathname === link.to ? 'text-blue-600 font-bold' : ''
                 }`}
               >
                 {link.label}
@@ -67,7 +67,7 @@ export function PublicLayout() {
               <>
                 <Link
                   to="/login"
-                  className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+                  className="hidden md:flex text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors items-center gap-1.5"
                 >
                   <LogIn className="w-3.5 h-3.5 text-slate-500" />
                   <span>Sign In</span>
@@ -75,7 +75,7 @@ export function PublicLayout() {
 
                 <Link
                   to="/register"
-                  className="hidden sm:flex text-xs sm:text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors items-center gap-1.5"
+                  className="hidden xl:flex text-xs sm:text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors items-center gap-1.5"
                 >
                   <UserPlus className="w-3.5 h-3.5 text-blue-600" />
                   <span>Register</span>
@@ -83,7 +83,7 @@ export function PublicLayout() {
 
                 <Link
                   to="/vehicles"
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all shadow-sm hover:shadow whitespace-nowrap"
                 >
                   Book a Car
                 </Link>
@@ -92,7 +92,7 @@ export function PublicLayout() {
               <>
                 <Link
                   to="/account/profile"
-                  className={`text-xs sm:text-sm font-semibold px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${
+                  className={`text-xs sm:text-sm font-semibold px-2 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${
                     location.pathname.startsWith('/account')
                       ? 'bg-blue-50 text-blue-700'
                       : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
@@ -107,12 +107,11 @@ export function PublicLayout() {
                     )}
                   </div>
                   <span className="hidden sm:inline font-medium">{user?.firstName || 'My Account'}</span>
-                  <span className="sm:hidden font-medium">Account</span>
                 </Link>
 
                 <Link
                   to="/vehicles"
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors shadow-sm whitespace-nowrap"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all shadow-sm hover:shadow whitespace-nowrap"
                 >
                   Book a Car
                 </Link>
@@ -120,7 +119,7 @@ export function PublicLayout() {
                 <button
                   onClick={handleLogout}
                   title="Sign out of account"
-                  className="p-2 text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition-colors"
+                  className="hidden md:flex p-2 text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition-colors"
                   aria-label="Sign out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -131,7 +130,7 @@ export function PublicLayout() {
               <>
                 <Link
                   to="/admin/profile"
-                  className="flex items-center gap-2 text-xs font-medium text-slate-700 hover:text-blue-600 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                  className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-700 hover:text-blue-600 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
                   title="Profile & Credentials"
                 >
                   <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-[10px] text-slate-700 shrink-0">
@@ -146,11 +145,11 @@ export function PublicLayout() {
 
                 <Link
                   to="/admin"
-                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 whitespace-nowrap"
+                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-colors shadow-sm flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
                 >
-                  <ShieldCheck className="w-4 h-4 text-blue-400" />
+                  <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
                   <span>Ops Deck</span>
-                  <span className="text-[10px] bg-blue-500/30 text-blue-300 px-1.5 py-0.5 rounded uppercase font-mono">
+                  <span className="text-[10px] bg-blue-500/30 text-blue-300 px-1.5 py-0.5 rounded uppercase font-mono hidden sm:inline">
                     {role}
                   </span>
                 </Link>
@@ -158,7 +157,7 @@ export function PublicLayout() {
                 <button
                   onClick={handleLogout}
                   title="Sign out of operations deck"
-                  className="p-2 text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition-colors"
+                  className="hidden md:flex p-2 text-slate-500 hover:text-red-600 rounded-lg hover:bg-slate-100 transition-colors"
                   aria-label="Sign out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -169,7 +168,7 @@ export function PublicLayout() {
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden focus:outline-none"
+              className="p-1.5 sm:p-2 rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden focus:outline-none shrink-0"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -241,6 +240,13 @@ export function PublicLayout() {
                     </div>
                     <span>Profile & Credentials ({user?.firstName})</span>
                   </Link>
+                  <Link
+                    to="/account/bookings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <span>My Bookings</span>
+                  </Link>
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
@@ -261,6 +267,20 @@ export function PublicLayout() {
                   >
                     <ShieldCheck className="w-4 h-4 text-blue-600" />
                     <span>Operations Command Center ({role})</span>
+                  </Link>
+                  <Link
+                    to="/admin/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center font-bold text-[9px] text-slate-700 shrink-0">
+                      {user?.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={user.firstName} className="w-full h-full object-cover" />
+                      ) : (
+                        user?.firstName?.[0] || 'O'
+                      )}
+                    </div>
+                    <span>Profile & Credentials</span>
                   </Link>
                   <button
                     onClick={() => {
