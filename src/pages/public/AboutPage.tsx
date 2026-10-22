@@ -29,6 +29,7 @@ const team = [
     name: 'Marcus Vance',
     role: 'Chief Executive Officer & Fleet Administrator',
     bio: 'Marcus oversees DriveFleet\'s fleet strategy, branch expansion, and pricing governance. With over 12 years in Nigerian transport logistics, he built the operational SOP framework that underpins every handover.',
+    avatarUrl: 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&q=80&w=400',
     initials: 'MV',
     color: 'bg-blue-600',
   },
@@ -36,6 +37,7 @@ const team = [
     name: 'Amara Kalu',
     role: 'Head of Branch Operations — Lagos',
     bio: 'Amara manages day-to-day dispatch and customer handovers at the Lagos Ikeja Main Hub. Her team handles all pickup inspections, maintenance scheduling, and CRM follow-ups for the Lagos customer base.',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
     initials: 'AK',
     color: 'bg-emerald-600',
   },
@@ -43,6 +45,7 @@ const team = [
     name: 'Ibrahim Musa',
     role: 'Senior Fleet Coordinator — Abuja',
     bio: 'Ibrahim coordinates vehicle availability, maintenance blocks, and corporate account bookings at the Abuja Central Terminal. He is the primary point of contact for government and enterprise clients in the FCT.',
+    avatarUrl: 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?auto=format&fit=crop&q=80&w=400',
     initials: 'IM',
     color: 'bg-violet-600',
   },
@@ -188,13 +191,32 @@ export function AboutPage() {
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {team.map((member) => (
-            <div key={member.name} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm text-center">
-              <div className={`w-16 h-16 ${member.color} rounded-2xl flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 shadow-sm`}>
-                {member.initials}
+            <div
+              key={member.name}
+              className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm text-center flex flex-col items-center hover:shadow-md transition-shadow"
+            >
+              <div className="relative mb-4">
+                <img
+                  src={member.avatarUrl}
+                  alt={member.name}
+                  className="w-24 h-24 rounded-full object-cover shadow-md ring-4 ring-slate-100 mx-auto"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div
+                  style={{ display: 'none' }}
+                  className={`w-24 h-24 ${member.color} rounded-full items-center justify-center text-white font-bold text-2xl mx-auto shadow-md ring-4 ring-slate-100`}
+                >
+                  {member.initials}
+                </div>
               </div>
-              <h3 className="font-bold text-slate-900 text-sm">{member.name}</h3>
-              <p className="text-xs text-blue-600 font-medium mt-1 mb-3">{member.role}</p>
-              <p className="text-xs text-slate-500 leading-relaxed">{member.bio}</p>
+              <h3 className="font-bold text-slate-900 text-base">{member.name}</h3>
+              <p className="text-xs text-blue-600 font-semibold mt-1 mb-3">{member.role}</p>
+              <p className="text-xs text-slate-500 leading-relaxed text-center">{member.bio}</p>
             </div>
           ))}
         </div>

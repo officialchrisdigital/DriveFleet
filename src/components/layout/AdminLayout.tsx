@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Menu,
   X,
+  User as UserIcon,
 } from 'lucide-react';
 
 export function AdminLayout() {
@@ -45,6 +46,7 @@ export function AdminLayout() {
 
     { label: 'Intelligence & Settings', header: true },
     { path: '/admin/reports', label: 'Reports & Analytics', icon: BarChart3 },
+    { path: '/admin/profile', label: 'Profile & Credentials', icon: UserIcon },
     ...(isAdmin
       ? [
           { path: '/admin/pricing', label: 'Pricing Rules & Tiers', icon: DollarSign },
@@ -175,24 +177,33 @@ export function AdminLayout() {
         {/* User Profile Bar & Sign Out */}
         <div className="p-3 border-t border-slate-800 space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs shrink-0">
-                {user?.firstName?.[0] || 'O'}
+            <Link
+              to="/admin/profile"
+              onClick={() => setMobileNavOpen(false)}
+              className="flex items-center gap-2.5 min-w-0 hover:opacity-90 transition-opacity flex-1 group"
+              title="View and edit profile & credentials"
+            >
+              <div className="w-9 h-9 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden ring-2 ring-slate-700/50 group-hover:ring-blue-500 transition-all">
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.firstName} className="w-full h-full object-cover" />
+                ) : (
+                  user?.firstName?.[0] || 'O'
+                )}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-medium text-white truncate">
+                <div className="text-xs font-semibold text-white truncate group-hover:text-blue-400 transition-colors">
                   {user?.firstName} {user?.lastName}
                 </div>
                 <div className="text-[10px] text-blue-400 uppercase tracking-wider font-mono">
                   {role}
                 </div>
               </div>
-            </div>
+            </Link>
 
             <button
               onClick={handleLogout}
               title="Sign out of Operations Deck"
-              className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800 transition-colors"
+              className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800 transition-colors shrink-0 ml-1"
               aria-label="Sign out"
             >
               <LogOut className="w-4 h-4" />
@@ -230,14 +241,27 @@ export function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs font-medium text-slate-800">
-                {user?.firstName} {user?.lastName}
+            <Link
+              to="/admin/profile"
+              className="flex items-center gap-2.5 hover:opacity-90 transition-opacity"
+              title="Edit Profile & Credentials"
+            >
+              <div className="text-right hidden sm:block">
+                <div className="text-xs font-semibold text-slate-800 hover:text-blue-600 transition-colors">
+                  {user?.firstName} {user?.lastName}
+                </div>
+                <div className="text-[10px] text-slate-500">
+                  {user?.preferredBranchId?.includes('2') ? 'Abuja Central Terminal' : 'Lagos Ikeja Dispatch Node'}
+                </div>
               </div>
-              <div className="text-[10px] text-slate-500">
-                {user?.preferredBranchId?.includes('2') ? 'Abuja Central Terminal' : 'Lagos Ikeja Dispatch Node'}
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center font-bold text-xs text-blue-600 shadow-xs">
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.firstName} className="w-full h-full object-cover" />
+                ) : (
+                  user?.firstName?.[0] || 'O'
+                )}
               </div>
-            </div>
+            </Link>
 
             <button
               onClick={handleLogout}

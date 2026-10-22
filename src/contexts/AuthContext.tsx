@@ -25,6 +25,7 @@ export const DEFAULT_CREDENTIALS = {
       lastName: 'Vance',
       phone: '+234 809 999 8877',
       active: true,
+      avatarUrl: 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&q=80&w=400',
       createdAt: '2026-01-15T08:00:00Z',
     },
   },
@@ -40,6 +41,7 @@ export const DEFAULT_CREDENTIALS = {
       phone: '+234 802 111 2233',
       active: true,
       preferredBranchId: 'b0000000-0000-0000-0000-000000000001',
+      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
       createdAt: '2026-02-01T08:00:00Z',
     },
   },
@@ -55,6 +57,7 @@ export const DEFAULT_CREDENTIALS = {
       phone: '+234 802 987 6543',
       active: true,
       preferredBranchId: 'b0000000-0000-0000-0000-000000000002',
+      avatarUrl: 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?auto=format&fit=crop&q=80&w=400',
       createdAt: '2026-02-10T08:00:00Z',
     },
   },
@@ -79,6 +82,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_STORAGE_KEY = 'drivefleet_auth_session';
 const REGISTERED_USERS_KEY = 'drivefleet_registered_users';
+const USER_OVERRIDES_KEY = 'drivefleet_user_overrides';
 
 interface RegisteredUserRecord {
   user: User;
@@ -118,6 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getUserOverrides = (): Record<string, Partial<User>> => {
+    try {
+      const stored = localStorage.getItem(USER_OVERRIDES_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  };
+
   const login = async (
     email: string,
     password: string,
@@ -141,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     if (matchedSeed) {
-      matchedUser = matchedSeed.user;
+      matchedUser = { ...matchedSeed.user };
     } else {
       // 2. Check registered accounts
       const registered = getRegisteredUsers();
@@ -149,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (r) => r.user.email.toLowerCase() === cleanEmail && r.password === cleanPass
       );
       if (match) {
-        matchedUser = match.user;
+        matchedUser = { ...match.user };
       }
     }
 
@@ -163,6 +176,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         success: false,
         error: 'Access denied: This portal is reserved for DriveFleet operations personnel. Customers please use the main sign in.',
       };
+    }
+
+    // Merge persistent user overrides (such as custom avatarUrl)
+    const overrides = getUserOverrides();
+    const userOverride = overrides[matchedUser.id] || overrides[cleanEmail];
+    if (userOverride) {
+      matchedUser = { ...matchedUser, ...userOverride };
     }
 
     setUser(matchedUser);
@@ -227,8 +247,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = (data: Partial<User>) => {
     if (!user) return;
-    const updated = { ...user, ...data };
+    const updated = { ...user, ...data, updatedAt: new Date().toISOString() };
     setUser(updated);
+
+    // 1. Update active session
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Could not save auth session:', e);
+    }
+
+    // 2. Persist in user overrides so re-login retains custom avatar and edits
+    try {
+      const overrides = getUserOverrides();
+      overrides[user.id] = { ...(overrides[user.id] || {}), ...data };
+      overrides[user.email.toLowerCase()] = { ...(overrides[user.email.toLowerCase()] || {}), ...data };
+      localStorage.setItem(USER_OVERRIDES_KEY, JSON.stringify(overrides));
+    } catch (e) {
+      console.warn('Could not save user overrides:', e);
+    }
+
+    // 3. Update registered accounts array if this user was registered
+    try {
+      const registered = getRegisteredUsers();
+      const idx = registered.findIndex(
+        (r) => r.user.id === user.id || r.user.email.toLowerCase() === user.email.toLowerCase()
+      );
+      if (idx !== -1) {
+        registered[idx].user = updated;
+        localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(registered));
+      }
+    } catch (e) {
+      console.warn('Could not update registered users:', e);
+    }
   };
 
   return (

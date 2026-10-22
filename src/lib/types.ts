@@ -20,6 +20,7 @@ export interface User {
   phone?: string;
   active: boolean;
   preferredBranchId?: string;
+  avatarUrl?: string;
   createdAt: string;
   updatedAt?: string;
 }

@@ -275,6 +275,7 @@ export function App() {
 
             {/* Admin Management Routes (AdminOnlyRoute enforced) */}
             <Route path="/admin/reports" element={<OperationalReportsPage />} />
+            <Route path="/admin/profile" element={<ProfilePage />} />
             <Route
               path="/admin/pricing"
               element={

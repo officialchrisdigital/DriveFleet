@@ -91,16 +91,23 @@ export function PublicLayout() {
             ) : role === 'customer' ? (
               <>
                 <Link
-                  to="/account"
-                  className={`text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                  to="/account/profile"
+                  className={`text-xs sm:text-sm font-semibold px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-2 ${
                     location.pathname.startsWith('/account')
                       ? 'bg-blue-50 text-blue-700'
                       : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
                   }`}
+                  title="Profile & Credentials"
                 >
-                  <UserIcon className="w-3.5 h-3.5 text-blue-600" />
-                  <span className="hidden sm:inline">{user?.firstName || 'My Account'}</span>
-                  <span className="sm:hidden">Account</span>
+                  <div className="w-6 h-6 rounded-full overflow-hidden bg-blue-100 border border-blue-200 flex items-center justify-center font-bold text-[10px] text-blue-700 shrink-0">
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.firstName} className="w-full h-full object-cover" />
+                    ) : (
+                      user?.firstName?.[0] || 'U'
+                    )}
+                  </div>
+                  <span className="hidden sm:inline font-medium">{user?.firstName || 'My Account'}</span>
+                  <span className="sm:hidden font-medium">Account</span>
                 </Link>
 
                 <Link
@@ -122,6 +129,21 @@ export function PublicLayout() {
             ) : (
               // Staff or Admin
               <>
+                <Link
+                  to="/admin/profile"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-700 hover:text-blue-600 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                  title="Profile & Credentials"
+                >
+                  <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-[10px] text-slate-700 shrink-0">
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.firstName} className="w-full h-full object-cover" />
+                    ) : (
+                      user?.firstName?.[0] || 'O'
+                    )}
+                  </div>
+                  <span className="hidden md:inline">{user?.firstName}</span>
+                </Link>
+
                 <Link
                   to="/admin"
                   className="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center gap-2 whitespace-nowrap"
@@ -206,12 +228,18 @@ export function PublicLayout() {
               ) : role === 'customer' ? (
                 <>
                   <Link
-                    to="/account"
+                    to="/account/profile"
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                   >
-                    <UserIcon className="w-4 h-4 text-blue-600" />
-                    <span>My Account ({user?.firstName})</span>
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center font-bold text-[9px] text-blue-700 shrink-0">
+                      {user?.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={user.firstName} className="w-full h-full object-cover" />
+                      ) : (
+                        user?.firstName?.[0] || 'U'
+                      )}
+                    </div>
+                    <span>Profile & Credentials ({user?.firstName})</span>
                   </Link>
                   <button
                     onClick={() => {
