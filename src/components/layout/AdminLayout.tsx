@@ -1,13 +1,34 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LayoutDashboard, Car, Calendar, Bookmark, RefreshCw, Wrench, BarChart3, Users, Settings, Activity, DollarSign, Bell } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Car,
+  Calendar,
+  Bookmark,
+  RefreshCw,
+  Wrench,
+  BarChart3,
+  Users,
+  Settings,
+  Activity,
+  DollarSign,
+  LogOut,
+  ExternalLink,
+  ShieldAlert,
+} from 'lucide-react';
 
 export function AdminLayout() {
-  const { role, user } = useAuth();
+  const { role, user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isStaffOrAdmin = role === 'staff' || role === 'admin';
   const isAdmin = role === 'admin';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
+  };
 
   const navItems = [
     { label: 'Operations Deck', header: true },
@@ -20,29 +41,42 @@ export function AdminLayout() {
 
     { label: 'Intelligence & Settings', header: true },
     { path: '/admin/reports', label: 'Reports & Analytics', icon: BarChart3 },
-    ...(isAdmin ? [
-      { path: '/admin/pricing', label: 'Pricing Rules & Tiers', icon: DollarSign },
-      { path: '/admin/promos', label: 'Promotions & Vouchers', icon: RefreshCw },
-      { path: '/admin/users', label: 'Team & Role Access', icon: Users },
-      { path: '/admin/activity', label: 'Audit Trail & Ledger', icon: Activity },
-      { path: '/admin/settings', label: 'Business Settings', icon: Settings },
-    ] : [])
+    ...(isAdmin
+      ? [
+          { path: '/admin/pricing', label: 'Pricing Rules & Tiers', icon: DollarSign },
+          { path: '/admin/promos', label: 'Promotions & Vouchers', icon: RefreshCw },
+          { path: '/admin/users', label: 'Team & Role Access', icon: Users },
+          { path: '/admin/activity', label: 'Audit Trail & Ledger', icon: Activity },
+          { path: '/admin/settings', label: 'Business Settings', icon: Settings },
+        ]
+      : []),
   ];
 
   if (!isStaffOrAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 max-w-md w-full text-center">
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Operations Access Required</h2>
-          <p className="text-sm text-slate-600 mb-6">
-            You are currently signed in as a customer. Please switch to Staff or Admin role using the top demo banner.
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
+        <div className="bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-700 max-w-md w-full text-center">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto mb-4">
+            <ShieldAlert className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Operations Access Required</h2>
+          <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+            This area is restricted to authorized DriveFleet operations staff and managers. Please sign in with staff or administrative credentials.
           </p>
-          <Link
-            to="/"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
-          >
-            Return to Public Home
-          </Link>
+          <div className="flex flex-col gap-3">
+            <Link
+              to="/admin/login"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm py-2.5 px-4 rounded-xl transition-colors shadow-sm"
+            >
+              Staff & Operations Login
+            </Link>
+            <Link
+              to="/"
+              className="text-xs text-slate-400 hover:text-white transition-colors py-1"
+            >
+              Return to Public Storefront
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -68,13 +102,13 @@ export function AdminLayout() {
           </Link>
         </div>
 
-        {/* Hub selector */}
+        {/* Hub selector / active node */}
         <div className="p-3 m-3 rounded-lg bg-slate-800/80 border border-slate-700/50">
           <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold mb-1">
             Active Hub
           </span>
           <div className="text-xs font-medium text-white flex items-center justify-between">
-            <span>Lagos Ikeja Main Hub</span>
+            <span>{user?.preferredBranchId?.includes('2') ? 'Abuja Central Terminal' : 'Lagos Ikeja Main Hub'}</span>
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
           </div>
         </div>
@@ -85,8 +119,8 @@ export function AdminLayout() {
             if (item.header) {
               return (
                 <div
-                  key={idx}
-                  className="pt-4 pb-1 px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider"
+                  key={`header-${idx}`}
+                  className="pt-4 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider"
                 >
                   {item.label}
                 </div>
@@ -94,7 +128,7 @@ export function AdminLayout() {
             }
 
             const Icon = item.icon!;
-            const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path!));
+            const isActive = location.pathname === item.path;
 
             return (
               <Link
@@ -102,38 +136,50 @@ export function AdminLayout() {
                 to={item.path!}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-blue-600 text-white font-semibold shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 shrink-0" />
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* User bar */}
-        <div className="p-3 border-t border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs shrink-0">
-              {user?.firstName?.[0] || 'O'}
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-medium text-white truncate">
-                {user?.firstName} {user?.lastName}
+        {/* User Profile Bar & Sign Out */}
+        <div className="p-3 border-t border-slate-800 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+                {user?.firstName?.[0] || 'O'}
               </div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider truncate">
-                {role}
+              <div className="min-w-0">
+                <div className="text-xs font-medium text-white truncate">
+                  {user?.firstName} {user?.lastName}
+                </div>
+                <div className="text-[10px] text-blue-400 uppercase tracking-wider font-mono">
+                  {role}
+                </div>
               </div>
             </div>
+
+            <button
+              onClick={handleLogout}
+              title="Sign out of Operations Deck"
+              className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-slate-800 transition-colors"
+              aria-label="Sign out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
+
           <Link
             to="/"
-            title="Switch to Public Storefront"
-            className="text-xs text-slate-400 hover:text-white p-1.5 rounded hover:bg-slate-800"
+            className="w-full text-center text-[11px] text-slate-400 hover:text-white py-1.5 px-2 rounded hover:bg-slate-800 flex items-center justify-center gap-1.5 transition-colors"
           >
-            Storefront
+            <ExternalLink className="w-3 h-3" />
+            <span>View Public Storefront</span>
           </Link>
         </div>
       </aside>
@@ -155,9 +201,17 @@ export function AdminLayout() {
                 {user?.firstName} {user?.lastName}
               </div>
               <div className="text-[10px] text-slate-500">
-                Lagos Ikeja Dispatch Node
+                {user?.preferredBranchId?.includes('2') ? 'Abuja Central Terminal' : 'Lagos Ikeja Dispatch Node'}
               </div>
             </div>
+
+            <button
+              onClick={handleLogout}
+              className="hidden sm:flex text-xs font-semibold text-slate-600 hover:text-red-600 bg-slate-100 hover:bg-red-50 border border-slate-200 px-3 py-1.5 rounded-lg items-center gap-1.5 transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
           </div>
         </header>
 

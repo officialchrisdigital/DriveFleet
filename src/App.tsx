@@ -4,6 +4,7 @@ import { PublicLayout } from './components/layout/PublicLayout';
 import { AdminLayout } from './components/layout/AdminLayout';
 import { CustomerLayout } from './components/layout/CustomerLayout';
 import { PagePlaceholder } from './components/shared/PagePlaceholder';
+import { CustomerRoute, StaffRoute, AdminOnlyRoute } from './components/auth/ProtectedRoute';
 
 // Interactive Milestone 2 Pages
 import { HomePage } from './pages/public/HomePage';
@@ -15,6 +16,16 @@ import { ContactPage } from './pages/public/ContactPage';
 import { FaqPage } from './pages/public/FaqPage';
 import { TermsPage } from './pages/public/TermsPage';
 import { PrivacyPage } from './pages/public/PrivacyPage';
+
+// Authentication Pages
+import { LoginPage } from './pages/auth/LoginPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
+import { AdminLoginPage } from './pages/auth/AdminLoginPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
+
+// Booking & Account
 import { BookingWizardPage } from './pages/booking/BookingWizardPage';
 import { CheckoutSimulatorPage } from './pages/booking/CheckoutSimulatorPage';
 import { BookingConfirmationPage } from './pages/booking/BookingConfirmationPage';
@@ -47,7 +58,7 @@ export function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Customer Routes */}
+          {/* Public Customer Routes (Clean Navbar - No Demo Banners) */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/vehicles" element={<VehiclesPage />} />
@@ -59,63 +70,33 @@ export function App() {
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
 
-            {/* Auth Routes */}
-            <Route
-              path="/login"
-              element={
-                <div className="max-w-md mx-auto px-4 py-16">
-                  <PagePlaceholder title="Customer Sign In" routeCode="FR-02 /login" />
-                </div>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <div className="max-w-md mx-auto px-4 py-16">
-                  <PagePlaceholder title="Create Account" routeCode="FR-02 /register" />
-                </div>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <div className="max-w-md mx-auto px-4 py-16">
-                  <PagePlaceholder title="Forgot Password" routeCode="FR-02 /forgot-password" />
-                </div>
-              }
-            />
-            <Route
-              path="/reset-password"
-              element={
-                <div className="max-w-md mx-auto px-4 py-16">
-                  <PagePlaceholder title="Reset Password" routeCode="FR-02 /reset-password" />
-                </div>
-              }
-            />
-            <Route
-              path="/verify-email"
-              element={
-                <div className="max-w-md mx-auto px-4 py-16">
-                  <PagePlaceholder title="Verify Email" routeCode="FR-02 /verify-email" />
-                </div>
-              }
-            />
-            <Route
-              path="/admin/login"
-              element={
-                <div className="max-w-md mx-auto px-4 py-16">
-                  <PagePlaceholder title="Staff / Operations Login" routeCode="FR-02 /admin/login" />
-                </div>
-              }
-            />
+            {/* Customer Authentication Routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
 
             {/* Booking Flow */}
             <Route path="/book/:vehicleId" element={<BookingWizardPage />} />
-            <Route path="/checkout" element={<CheckoutSimulatorPage />} />
+            <Route
+              path="/checkout"
+              element={
+                <CustomerRoute>
+                  <CheckoutSimulatorPage />
+                </CustomerRoute>
+              }
+            />
             <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
 
-            {/* Customer Account Sub-Routes */}
-            <Route element={<CustomerLayout />}>
+            {/* Customer Account Sub-Routes (Protected) */}
+            <Route
+              element={
+                <CustomerRoute>
+                  <CustomerLayout />
+                </CustomerRoute>
+              }
+            >
               <Route path="/account" element={<AccountOverviewPage />} />
               <Route path="/account/bookings" element={<MyBookingsPage />} />
               <Route path="/account/bookings/:bookingId" element={<BookingConfirmationPage />} />
@@ -126,18 +107,29 @@ export function App() {
             <Route path="/access-denied" element={<AccessDeniedPage />} />
           </Route>
 
-          {/* Admin Operations with Admin Layout */}
-          <Route element={<AdminLayout />}>
+          {/* Dedicated Operations Login (Standalone Dark Theme Portal) */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+
+          {/* Staff & Admin Operations (Protected by StaffRoute) */}
+          <Route
+            element={
+              <StaffRoute>
+                <AdminLayout />
+              </StaffRoute>
+            }
+          >
             <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/admin/vehicles" element={<FleetRegisterPage />} />
             <Route
               path="/admin/vehicles/new"
               element={
-                <PagePlaceholder
-                  title="Provision New Fleet Vehicle"
-                  subtitle="Admin-only form for plate, category, rates, mileage allowance, and thresholds."
-                  routeCode="FR-04 /admin/vehicles/new"
-                />
+                <AdminOnlyRoute>
+                  <PagePlaceholder
+                    title="Provision New Fleet Vehicle"
+                    subtitle="Admin-only form for plate, category, rates, mileage allowance, and thresholds."
+                    routeCode="FR-04 /admin/vehicles/new"
+                  />
+                </AdminOnlyRoute>
               }
             />
             <Route
@@ -154,11 +146,13 @@ export function App() {
             <Route
               path="/admin/vehicles/:vehicleId/edit"
               element={
-                <PagePlaceholder
-                  title="Edit Vehicle Record"
-                  subtitle="Update specifications while preserving linked booking and odometer history."
-                  routeCode="FR-04 /admin/vehicles/:id/edit"
-                />
+                <AdminOnlyRoute>
+                  <PagePlaceholder
+                    title="Edit Vehicle Record"
+                    subtitle="Update specifications while preserving linked booking and odometer history."
+                    routeCode="FR-04 /admin/vehicles/:id/edit"
+                  />
+                </AdminOnlyRoute>
               }
             />
             <Route path="/admin/calendar" element={<DispatchCalendarPage />} />
@@ -279,13 +273,48 @@ export function App() {
               }
             />
 
-            {/* Admin Management Routes */}
+            {/* Admin Management Routes (AdminOnlyRoute enforced) */}
             <Route path="/admin/reports" element={<OperationalReportsPage />} />
-            <Route path="/admin/pricing" element={<PricingManagementPage />} />
-            <Route path="/admin/promos" element={<PromosManagementPage />} />
-            <Route path="/admin/users" element={<TeamManagementPage />} />
-            <Route path="/admin/settings" element={<OrgSettingsPage />} />
-            <Route path="/admin/activity" element={<AuditTrailPage />} />
+            <Route
+              path="/admin/pricing"
+              element={
+                <AdminOnlyRoute>
+                  <PricingManagementPage />
+                </AdminOnlyRoute>
+              }
+            />
+            <Route
+              path="/admin/promos"
+              element={
+                <AdminOnlyRoute>
+                  <PromosManagementPage />
+                </AdminOnlyRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminOnlyRoute>
+                  <TeamManagementPage />
+                </AdminOnlyRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <AdminOnlyRoute>
+                  <OrgSettingsPage />
+                </AdminOnlyRoute>
+              }
+            />
+            <Route
+              path="/admin/activity"
+              element={
+                <AdminOnlyRoute>
+                  <AuditTrailPage />
+                </AdminOnlyRoute>
+              }
+            />
           </Route>
 
           {/* Catch-all to 404 */}
