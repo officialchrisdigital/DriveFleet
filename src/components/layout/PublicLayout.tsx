@@ -310,7 +310,7 @@ export function PublicLayout() {
           <div>
             <div className="flex items-center gap-2 text-white font-bold text-lg mb-3">
               <img
-                src="/drivefleet_logo_icon.png"
+                src="/drivefleet_logo_icon_white.png"
                 alt="DriveFleet logo"
                 className="w-6 h-6 object-contain"
               />

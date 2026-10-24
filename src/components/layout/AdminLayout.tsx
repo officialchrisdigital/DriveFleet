@@ -107,7 +107,7 @@ export function AdminLayout() {
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src="/drivefleet_logo_icon.png"
+              src="/drivefleet_logo_icon_white.png"
               alt="DriveFleet logo"
               className="w-8 h-8 object-contain"
             />
