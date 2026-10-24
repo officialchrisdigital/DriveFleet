@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useOperations } from '@/contexts/OperationsContext';
 import { downloadCsv } from '@/lib/csvExport';
+import { AvatarUploader } from '@/components/shared/AvatarUploader';
 import {
   Users, Plus, ShieldCheck, AlertTriangle, CheckCircle2,
   Lock, Mail, Phone, UserX, UserCheck, X, Download
@@ -16,6 +17,9 @@ export function TeamManagementPage() {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<'staff' | 'admin'>('staff');
   const [branch, setBranch] = useState('Lagos Central Hub (Ikeja)');
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400'
+  );
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -49,7 +53,7 @@ export function TeamManagementPage() {
       role,
       branch,
       active: true,
-      avatarUrl: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80`,
+      avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
     });
 
     setIsModalOpen(false);
@@ -57,6 +61,7 @@ export function TeamManagementPage() {
     setLastName('');
     setEmail('');
     setPhone('');
+    setAvatarUrl('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400');
     setFeedback(`New ${role.toUpperCase()} account provisioned for ${firstName} ${lastName}!`);
     setTimeout(() => setFeedback(null), 3500);
   };
@@ -136,8 +141,19 @@ export function TeamManagementPage() {
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-black text-sm flex items-center justify-center">
-                  {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+                <div className="w-11 h-11 rounded-2xl overflow-hidden bg-slate-900 text-white font-black text-sm flex items-center justify-center shrink-0 border border-slate-200 shadow-sm ring-2 ring-slate-100">
+                  {member.avatarUrl ? (
+                    <img
+                      src={member.avatarUrl}
+                      alt={`${member.firstName} ${member.lastName}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <span>{member.firstName.charAt(0)}{member.lastName.charAt(0)}</span>
+                  )}
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
@@ -224,6 +240,16 @@ export function TeamManagementPage() {
             </div>
 
             <form onSubmit={handleAddMember} className="space-y-4 text-xs">
+              {/* Profile Avatar Upload */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                <AvatarUploader
+                  value={avatarUrl}
+                  onChange={setAvatarUrl}
+                  label="Team Member Avatar"
+                  subtitle="Upload an employee photo from device or provide an image URL"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 uppercase mb-1">First Name *</label>

@@ -190,9 +190,22 @@ export function CustomerCrmPage() {
               >
                 {/* Left: Contact Info */}
                 <div className="flex items-start gap-3 min-w-[240px]">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0 text-sm border border-blue-200 shadow-xs">
-                    {c.firstName[0]}
-                    {c.lastName[0]}
+                  <div className="w-11 h-11 rounded-full overflow-hidden bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0 text-sm border border-blue-200 shadow-xs">
+                    {c.avatarUrl ? (
+                      <img
+                        src={c.avatarUrl}
+                        alt={`${c.firstName} ${c.lastName}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <span>
+                        {c.firstName[0]}
+                        {c.lastName[0]}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors text-sm flex items-center gap-2">

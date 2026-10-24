@@ -52,6 +52,7 @@ export interface CrmCustomer {
   email?: string;
   phone?: string;
   company?: string;
+  avatarUrl?: string;
   status?: 'active' | 'flagged' | 'vip';
   rentalsCount?: number;
   notesCount?: number;

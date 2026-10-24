@@ -130,9 +130,22 @@ export function CustomerDetailPage() {
           {/* Contact Card */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 font-bold text-lg flex items-center justify-center shrink-0 border border-blue-200">
-                {customer.firstName[0]}
-                {customer.lastName[0]}
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-blue-100 text-blue-700 font-bold text-lg flex items-center justify-center shrink-0 border border-blue-200 shadow-sm ring-2 ring-slate-100">
+                {customer.avatarUrl ? (
+                  <img
+                    src={customer.avatarUrl}
+                    alt={`${customer.firstName} ${customer.lastName}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <span>
+                    {customer.firstName[0]}
+                    {customer.lastName[0]}
+                  </span>
+                )}
               </div>
               <div>
                 <div className="font-bold text-slate-900 text-sm">

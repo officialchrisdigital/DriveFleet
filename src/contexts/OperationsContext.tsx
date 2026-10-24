@@ -108,6 +108,7 @@ const SEED_CUSTOMERS: CrmCustomer[] = [
     company: 'Enterprise Dynamics Lagos',
     email: 'c.adeyemi@enterprise-lagos.ng',
     phone: '+234 803 555 0192',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
     status: 'active',
     rentalsCount: 6,
     notesCount: 2,
@@ -126,6 +127,7 @@ const SEED_CUSTOMERS: CrmCustomer[] = [
     company: 'Abuja Medical Consult',
     email: 'ngozi.eze@abuja-health.gov.ng',
     phone: '+234 802 333 4455',
+    avatarUrl: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=400',
     status: 'active',
     rentalsCount: 3,
     notesCount: 1,
@@ -144,6 +146,7 @@ const SEED_CUSTOMERS: CrmCustomer[] = [
     company: 'Diplomatic Mission Trade Office',
     email: 't.mansoor@trade-diplomatic.org',
     phone: '+234 809 111 8899',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400',
     status: 'vip',
     rentalsCount: 8,
     notesCount: 4,
@@ -162,6 +165,7 @@ const SEED_CUSTOMERS: CrmCustomer[] = [
     company: 'Okonkwo & Sons Logistics',
     email: 'chidi@okonkwo-logistics.com',
     phone: '+234 805 777 9900',
+    avatarUrl: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&q=80&w=400',
     status: 'flagged',
     rentalsCount: 4,
     notesCount: 3,
@@ -492,11 +496,28 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
 
   // 7. Team
   const [teamMembers, setTeamMembers] = useState<TeamMemberItem[]>(() => {
+    let initialTeam = SEED_TEAM;
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.TEAM);
-      if (saved) return JSON.parse(saved);
+      if (saved) initialTeam = JSON.parse(saved);
     } catch {}
-    return SEED_TEAM;
+
+    // Merge any user overrides so custom profile uploads reflect immediately
+    try {
+      const overridesStr = localStorage.getItem('drivefleet_user_overrides');
+      if (overridesStr) {
+        const overrides = JSON.parse(overridesStr);
+        initialTeam = initialTeam.map((tm) => {
+          const ov = overrides[tm.id] || overrides[tm.email.toLowerCase()];
+          if (ov && ov.avatarUrl) {
+            return { ...tm, avatarUrl: ov.avatarUrl };
+          }
+          return tm;
+        });
+      }
+    } catch {}
+
+    return initialTeam;
   });
 
   // Persist State to LocalStorage
@@ -528,60 +549,92 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(teamMembers));
   }, [teamMembers]);
 
-  // AUTO-SYNC: Watch registered storefront users and automatically synchronize into Customer CRM
+  // AUTO-SYNC: Watch profile updates, user registrations, and storage events to keep CRM customers and Team Members in sync
   useEffect(() => {
-    const syncRegisteredUsers = () => {
+    const syncAllProfiles = () => {
       try {
+        // 1. Sync Team Members from overrides
+        const overridesStr = localStorage.getItem('drivefleet_user_overrides');
+        if (overridesStr) {
+          const overrides = JSON.parse(overridesStr);
+          setTeamMembers((prevTeam) => {
+            let changed = false;
+            const updated = prevTeam.map((tm) => {
+              const ov = overrides[tm.id] || overrides[tm.email.toLowerCase()];
+              if (ov && ov.avatarUrl && ov.avatarUrl !== tm.avatarUrl) {
+                changed = true;
+                return { ...tm, avatarUrl: ov.avatarUrl };
+              }
+              return tm;
+            });
+            return changed ? updated : prevTeam;
+          });
+        }
+
+        // 2. Sync Registered Users into Customer CRM
         const storedUsers = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
-        if (!storedUsers) return;
-        const registered = JSON.parse(storedUsers);
-        if (!Array.isArray(registered)) return;
+        if (storedUsers) {
+          const registered = JSON.parse(storedUsers);
+          if (Array.isArray(registered)) {
+            setCustomers((prevCustomers) => {
+              let updated = [...prevCustomers];
+              let changed = false;
 
-        setCustomers((prevCustomers) => {
-          let updated = [...prevCustomers];
-          let changed = false;
+              for (const item of registered) {
+                const u = item.user;
+                if (!u || !u.email) continue;
 
-          for (const item of registered) {
-            const u = item.user;
-            if (!u || !u.email) continue;
+                const existingIdx = updated.findIndex(
+                  (c) => c.id === u.id || (c.email && c.email.toLowerCase() === u.email.toLowerCase())
+                );
 
-            const existingIdx = updated.findIndex(
-              (c) => c.id === u.id || (c.email && c.email.toLowerCase() === u.email.toLowerCase())
-            );
+                if (existingIdx === -1) {
+                  // Add new customer from registration
+                  updated.unshift({
+                    id: u.id || `crm-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+                    firstName: u.firstName || 'New',
+                    lastName: u.lastName || 'Customer',
+                    company: 'Direct Consumer',
+                    email: u.email,
+                    phone: u.phone || '+234 800 000 0000',
+                    avatarUrl: u.avatarUrl,
+                    status: 'active',
+                    rentalsCount: 0,
+                    notesCount: 0,
+                    createdBy: 'self-registered',
+                    createdAt: u.createdAt || new Date().toISOString(),
+                    renterDetails: item.renterDetails || {
+                      licenseNumber: 'Self-Registered Verification Pending',
+                      verifiedOnline: false,
+                    },
+                  });
+                  changed = true;
+                } else {
+                  // If customer uploaded a new avatar in their profile, override the CRM avatar
+                  const current = updated[existingIdx];
+                  if (u.avatarUrl && u.avatarUrl !== current.avatarUrl) {
+                    updated[existingIdx] = { ...current, avatarUrl: u.avatarUrl };
+                    changed = true;
+                  }
+                }
+              }
 
-            if (existingIdx === -1) {
-              // Add new customer from registration
-              updated.unshift({
-                id: u.id || `crm-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-                firstName: u.firstName || 'New',
-                lastName: u.lastName || 'Customer',
-                company: 'Direct Consumer',
-                email: u.email,
-                phone: u.phone || '+234 800 000 0000',
-                status: 'active',
-                rentalsCount: 0,
-                notesCount: 0,
-                createdBy: 'self-registered',
-                createdAt: u.createdAt || new Date().toISOString(),
-                renterDetails: item.renterDetails || {
-                  licenseNumber: 'Self-Registered Verification Pending',
-                  verifiedOnline: false,
-                },
-              });
-              changed = true;
-            }
+              return changed ? updated : prevCustomers;
+            });
           }
-
-          return changed ? updated : prevCustomers;
-        });
+        }
       } catch (err) {
-        console.warn('CRM sync error:', err);
+        console.warn('Profile sync error:', err);
       }
     };
 
-    syncRegisteredUsers();
-    window.addEventListener('storage', syncRegisteredUsers);
-    return () => window.removeEventListener('storage', syncRegisteredUsers);
+    syncAllProfiles();
+    window.addEventListener('storage', syncAllProfiles);
+    window.addEventListener('drivefleet_profile_sync', syncAllProfiles as EventListener);
+    return () => {
+      window.removeEventListener('storage', syncAllProfiles);
+      window.removeEventListener('drivefleet_profile_sync', syncAllProfiles as EventListener);
+    };
   }, []);
 
   // Conflict Checking Engine
@@ -701,6 +754,7 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       company: customerData.company || 'Private Customer',
       email: customerData.email || `client-${Date.now()}@example.com`,
       phone: customerData.phone || '+234 800 000 0000',
+      avatarUrl: customerData.avatarUrl,
       status: customerData.status || 'active',
       rentalsCount: 0,
       notesCount: customerData.notes?.length || 0,
@@ -714,13 +768,77 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
     };
 
     setCustomers((prev) => [newCustomer, ...prev]);
+
+    // If admin/staff uploaded an avatar for this customer, sync to overrides & registered accounts
+    if (newCustomer.avatarUrl && newCustomer.email) {
+      try {
+        const cleanEmail = newCustomer.email.toLowerCase();
+        const overridesStr = localStorage.getItem('drivefleet_user_overrides');
+        const overrides = overridesStr ? JSON.parse(overridesStr) : {};
+        overrides[cleanEmail] = { ...(overrides[cleanEmail] || {}), avatarUrl: newCustomer.avatarUrl };
+        overrides[newCustomer.id] = { ...(overrides[newCustomer.id] || {}), avatarUrl: newCustomer.avatarUrl };
+        localStorage.setItem('drivefleet_user_overrides', JSON.stringify(overrides));
+      } catch {}
+    }
+
     return newCustomer;
   };
 
   const updateCustomer = (id: string, updates: Partial<CrmCustomer>) => {
+    let targetEmail: string | undefined;
+
     setCustomers((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c))
+      prev.map((c) => {
+        if (c.id === id) {
+          const updated = { ...c, ...updates, updatedAt: new Date().toISOString() };
+          targetEmail = updated.email;
+          return updated;
+        }
+        return c;
+      })
     );
+
+    // Sync avatar to registered storefront accounts & active session
+    if (updates.avatarUrl && targetEmail) {
+      const cleanEmail = targetEmail.toLowerCase();
+      try {
+        const overridesStr = localStorage.getItem('drivefleet_user_overrides');
+        const overrides = overridesStr ? JSON.parse(overridesStr) : {};
+        overrides[cleanEmail] = { ...(overrides[cleanEmail] || {}), avatarUrl: updates.avatarUrl };
+        overrides[id] = { ...(overrides[id] || {}), avatarUrl: updates.avatarUrl };
+        localStorage.setItem('drivefleet_user_overrides', JSON.stringify(overrides));
+
+        const registeredStr = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
+        if (registeredStr) {
+          const registered = JSON.parse(registeredStr);
+          if (Array.isArray(registered)) {
+            let regChanged = false;
+            registered.forEach((r: any) => {
+              if (r.user?.email?.toLowerCase() === cleanEmail || r.user?.id === id) {
+                r.user.avatarUrl = updates.avatarUrl;
+                regChanged = true;
+              }
+            });
+            if (regChanged) {
+              localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(registered));
+            }
+          }
+        }
+
+        const authSessionStr = localStorage.getItem('drivefleet_auth_session');
+        if (authSessionStr) {
+          const session = JSON.parse(authSessionStr);
+          if (session?.email?.toLowerCase() === cleanEmail || session?.id === id) {
+            session.avatarUrl = updates.avatarUrl;
+            localStorage.setItem('drivefleet_auth_session', JSON.stringify(session));
+          }
+        }
+
+        window.dispatchEvent(new CustomEvent('drivefleet_profile_sync', { detail: { email: cleanEmail, avatarUrl: updates.avatarUrl } }));
+      } catch (e) {
+        console.warn('Customer avatar sync error:', e);
+      }
+    }
   };
 
   // Booking Methods
@@ -873,6 +991,16 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTeamMembers((prev) => [item, ...prev]);
+
+    if (item.avatarUrl) {
+      try {
+        const overridesStr = localStorage.getItem('drivefleet_user_overrides');
+        const overrides = overridesStr ? JSON.parse(overridesStr) : {};
+        overrides[item.email.toLowerCase()] = { ...(overrides[item.email.toLowerCase()] || {}), avatarUrl: item.avatarUrl };
+        overrides[item.id] = { ...(overrides[item.id] || {}), avatarUrl: item.avatarUrl };
+        localStorage.setItem('drivefleet_user_overrides', JSON.stringify(overrides));
+      } catch {}
+    }
   };
 
   const toggleTeamMember = (id: string) => {

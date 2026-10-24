@@ -280,6 +280,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.warn('Could not update registered users:', e);
     }
+
+    // 4. If staff or admin, sync avatar to team members
+    try {
+      const storedTeam = localStorage.getItem('drivefleet_team_members');
+      if (storedTeam) {
+        const team = JSON.parse(storedTeam);
+        if (Array.isArray(team)) {
+          let teamChanged = false;
+          const updatedTeam = team.map((tm) => {
+            if (tm.id === user.id || tm.email.toLowerCase() === user.email.toLowerCase()) {
+              teamChanged = true;
+              return {
+                ...tm,
+                avatarUrl: updated.avatarUrl,
+                firstName: updated.firstName || tm.firstName,
+                lastName: updated.lastName || tm.lastName,
+                phone: updated.phone || tm.phone,
+              };
+            }
+            return tm;
+          });
+          if (teamChanged) {
+            localStorage.setItem('drivefleet_team_members', JSON.stringify(updatedTeam));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sync team members:', e);
+    }
+
+    // 5. If customer, sync avatar to CRM directory
+    try {
+      const storedCustomers = localStorage.getItem('drivefleet_customers');
+      if (storedCustomers) {
+        const customers = JSON.parse(storedCustomers);
+        if (Array.isArray(customers)) {
+          let custChanged = false;
+          const updatedCust = customers.map((c) => {
+            if (c.id === user.id || (c.email && c.email.toLowerCase() === user.email.toLowerCase())) {
+              custChanged = true;
+              return {
+                ...c,
+                avatarUrl: updated.avatarUrl,
+                firstName: updated.firstName || c.firstName,
+                lastName: updated.lastName || c.lastName,
+                phone: updated.phone || c.phone,
+              };
+            }
+            return c;
+          });
+          if (custChanged) {
+            localStorage.setItem('drivefleet_customers', JSON.stringify(updatedCust));
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sync CRM customer:', e);
+    }
+
+    // 6. Broadcast event for instant in-memory reactive update across all open components
+    try {
+      window.dispatchEvent(new CustomEvent('drivefleet_profile_sync', { detail: { user: updated } }));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.warn('Broadcast sync error:', e);
+    }
   };
 
   return (

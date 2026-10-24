@@ -60,19 +60,41 @@ export function ProfilePage() {
       return;
     }
 
-    // Limit to 5MB
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError('Image size exceeds 5MB. Please choose a smaller photo.');
-      return;
-    }
-
     setAvatarError(null);
     const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      updateProfile({ avatarUrl: dataUrl });
-      setAvatarNotice('Avatar updated successfully!');
-      setTimeout(() => setAvatarNotice(null), 3000);
+    reader.onload = (uploadEv) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 400;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          updateProfile({ avatarUrl: dataUrl });
+        } else {
+          updateProfile({ avatarUrl: uploadEv.target?.result as string });
+        }
+        setAvatarNotice('Avatar updated successfully!');
+        setTimeout(() => setAvatarNotice(null), 3000);
+      };
+      img.onerror = () => {
+        setAvatarError('Failed to process image. Please try another photo.');
+      };
+      img.src = uploadEv.target?.result as string;
     };
     reader.onerror = () => {
       setAvatarError('Failed to read file. Please try another image.');

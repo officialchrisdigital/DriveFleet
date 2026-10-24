@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useOperations } from '@/contexts/OperationsContext';
+import { AvatarUploader } from '@/components/shared/AvatarUploader';
 import {
   Users, ArrowLeft, ShieldCheck, CheckCircle2,
   Building, Mail, Phone
@@ -18,6 +19,7 @@ export function EditCustomerPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [licenseNumber, setLicenseNumber] = useState('');
   const [licenseExpiry, setLicenseExpiry] = useState('');
   const [status, setStatus] = useState<'active' | 'vip' | 'flagged'>('active');
@@ -29,6 +31,7 @@ export function EditCustomerPage() {
       setEmail(customer.email || '');
       setPhone(customer.phone || '');
       setCompany(customer.company || '');
+      setAvatarUrl(customer.avatarUrl);
       setLicenseNumber(customer.renterDetails?.licenseNumber || '');
       setLicenseExpiry(customer.renterDetails?.licenseExpiry || '');
       setStatus(customer.status || 'active');
@@ -54,6 +57,7 @@ export function EditCustomerPage() {
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
       company: company.trim(),
+      avatarUrl,
       status,
       renterDetails: {
         ...customer.renterDetails,
@@ -89,6 +93,15 @@ export function EditCustomerPage() {
             <Users className="w-4 h-4 text-blue-600" />
             <span>Identity & Contact Details</span>
           </h2>
+
+          <div className="p-4 bg-slate-50/70 border border-slate-200 rounded-xl mt-4">
+            <AvatarUploader
+              value={avatarUrl}
+              onChange={setAvatarUrl}
+              label="Customer Profile Avatar"
+              subtitle="Upload or update an image on behalf of this customer (customer can also update their own avatar at any time)"
+            />
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <div>
