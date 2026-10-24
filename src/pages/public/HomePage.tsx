@@ -66,7 +66,7 @@ export function HomePage() {
                     type="date"
                     value={pickupDate}
                     onChange={(e) => setPickupDate(e.target.value)}
-                    className="w-2/3 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-medium text-slate-800"
+                    className="w-2/3 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-medium text-slate-800 date-picker-black cursor-pointer"
                   />
                   <input
                     type="time"
@@ -92,7 +92,7 @@ export function HomePage() {
                     type="date"
                     value={returnDate}
                     onChange={(e) => setReturnDate(e.target.value)}
-                    className="w-2/3 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-medium text-slate-800"
+                    className="w-2/3 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-medium text-slate-800 date-picker-black cursor-pointer"
                   />
                   <input
                     type="time"
