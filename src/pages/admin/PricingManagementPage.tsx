@@ -1,42 +1,73 @@
 import React, { useState } from 'react';
+import { useOperations } from '@/contexts/OperationsContext';
 import { formatCurrency } from '@/lib/formatters';
-import { calculateQuote } from '@/lib/pricing-engine';
+import { downloadCsv } from '@/lib/csvExport';
 import {
   DollarSign, Plus, Calendar, ShieldCheck, Tag,
-  Calculator, ArrowRight, CheckCircle2, AlertCircle
+  Calculator, ArrowRight, CheckCircle2, AlertCircle, X, Download
 } from 'lucide-react';
 
 export function PricingManagementPage() {
+  const { pricingOverrides, addPricingOverride, vehicles } = useOperations();
+
   const [weekendSurcharge, setWeekendSurcharge] = useState(10); // 10% default
-  const [testBaseRate, setTestBaseRate] = useState(30000); // NGN 30,000
+  const [testBaseRate, setTestBaseRate] = useState(45000); // NGN 45,000
   const [testDays, setTestDays] = useState(3);
   const [includeWeekend, setIncludeWeekend] = useState(true);
 
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newScope, setNewScope] = useState<'global' | 'category' | 'vehicle'>('global');
+  const [newTargetId, setNewTargetId] = useState('');
+  const [newStartDate, setNewStartDate] = useState('');
+  const [newEndDate, setNewEndDate] = useState('');
+  const [newMultiplier, setNewMultiplier] = useState(1.20); // +20%
+  const [newReason, setNewReason] = useState('');
+  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+
   // Simulated Test Quote
   const testSubtotal = includeWeekend
-    ? testBaseRate + Math.round(testBaseRate * 1.1) + Math.round(testBaseRate * 1.1)
+    ? testBaseRate + Math.round(testBaseRate * (1 + weekendSurcharge / 100)) * (testDays - 1)
     : testBaseRate * testDays;
 
-  const overrides = [
-    {
-      id: 'ov-dec-holidays',
-      name: 'December Peak Holiday Override',
-      scope: 'Global Fleet',
-      dates: 'Dec 15, 2026 – Jan 05, 2027',
-      rate: '+25% Surcharge',
-      priority: 1,
-      status: 'active',
-    },
-    {
-      id: 'ov-prado-independence',
-      name: 'Diplomatic Prado Weekend Peak',
-      scope: 'Toyota Prado TX (ABJ-401-PR)',
-      dates: 'Oct 01, 2026 – Oct 04, 2026',
-      rate: 'NGN 150,000 / day',
-      priority: 3,
-      status: 'active',
-    },
-  ];
+  const handleCreateOverride = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim() || !newStartDate || !newEndDate) {
+      return;
+    }
+
+    addPricingOverride({
+      name: newName.trim(),
+      scope: newScope,
+      targetId: newTargetId || undefined,
+      startDate: newStartDate,
+      endDate: newEndDate,
+      multiplier: Number(newMultiplier),
+      reason: newReason.trim() || 'Seasonal demand dynamic rate rule',
+    });
+
+    setIsModalOpen(false);
+    setNewName('');
+    setNewStartDate('');
+    setNewEndDate('');
+    setNewReason('');
+    setFeedbackMsg('New pricing override successfully saved to the active billing engine!');
+    setTimeout(() => setFeedbackMsg(null), 4000);
+  };
+
+  const handleExportCsv = () => {
+    const rows = pricingOverrides.map((ov) => ({
+      'Rule Name': ov.name,
+      'Scope': ov.scope,
+      'Target Asset / Category': ov.targetId || 'All Fleet',
+      'Start Date': ov.startDate,
+      'End Date': ov.endDate,
+      'Multiplier': `${Math.round((ov.multiplier - 1) * 100)}% surcharge`,
+      'Reason': ov.reason,
+    }));
+    downloadCsv('drivefleet-pricing-rules.csv', rows);
+  };
 
   return (
     <div className="space-y-6">
@@ -47,7 +78,7 @@ export function PricingManagementPage() {
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
               Pricing Rules & Date Override Engine
             </h1>
-            <span className="text-[10px] font-bold text-blue-700 uppercase px-2 py-0.5 rounded bg-blue-50 border border-blue-200">
+            <span className="text-[10px] font-bold text-blue-700 uppercase px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200">
               Deterministic Engine Active
             </span>
           </div>
@@ -56,14 +87,30 @@ export function PricingManagementPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => alert('Add date override modal (Admin action)')}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-colors self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Date Override</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCsv}
+            className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-colors"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <span>Export CSV</span>
+          </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-colors self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Date Override</span>
+          </button>
+        </div>
       </div>
+
+      {feedbackMsg && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <span>{feedbackMsg}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left (7 cols): Active Rules and Precedence Hierarchy */}
@@ -81,7 +128,7 @@ export function PricingManagementPage() {
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              When a rental period commences on Saturday or Sunday (evaluated in Africa/Lagos business timezone), the base daily rate automatically applies a <strong className="text-slate-900">+10% surcharge</strong>, unless superceded by a date-specific override.
+              When a rental period commences on Saturday or Sunday (evaluated in Africa/Lagos business timezone), the base daily rate automatically applies a <strong className="text-slate-900">+{weekendSurcharge}% surcharge</strong>, unless superceded by a date-specific override.
             </p>
 
             <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
@@ -93,91 +140,219 @@ export function PricingManagementPage() {
 
           {/* Active Overrides Table */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-slate-900">Configured Date-Range Overrides</h3>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900">Configured Date-Range Overrides</h3>
+              <span className="text-xs font-bold text-blue-600 font-mono">{pricingOverrides.length} rules active</span>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-400 uppercase text-[10px] font-semibold">
                   <tr>
-                    <th className="py-2.5 px-3">Rule Name</th>
-                    <th className="py-2.5 px-3">Target Scope</th>
-                    <th className="py-2.5 px-3">Effective Interval</th>
-                    <th className="py-2.5 px-3">Override Rate</th>
-                    <th className="py-2.5 px-3 text-right">Priority</th>
+                    <th className="py-2.5 px-4">Rule Title</th>
+                    <th className="py-2.5 px-4">Scope</th>
+                    <th className="py-2.5 px-4">Dates</th>
+                    <th className="py-2.5 px-4">Rate Adjustment</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {overrides.map((ov) => (
-                    <tr key={ov.id}>
-                      <td className="py-3 px-3 font-bold text-slate-900">{ov.name}</td>
-                      <td className="py-3 px-3 text-slate-600 font-medium">{ov.scope}</td>
-                      <td className="py-3 px-3 text-slate-500 font-mono text-[11px]">{ov.dates}</td>
-                      <td className="py-3 px-3 font-bold text-blue-600">{ov.rate}</td>
-                      <td className="py-3 px-3 text-right font-mono font-bold">P{ov.priority}</td>
-                    </tr>
-                  ))}
+                  {pricingOverrides.map((ov) => {
+                    const surchargePct = Math.round((ov.multiplier - 1) * 100);
+                    return (
+                      <tr key={ov.id} className="hover:bg-slate-50/50">
+                        <td className="py-3 px-4 font-bold text-slate-900">
+                          {ov.name}
+                          <div className="text-[10px] text-slate-400 font-normal mt-0.5">{ov.reason}</div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="capitalize px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-semibold text-[10px]">
+                            {ov.scope}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-mono text-[11px] text-slate-600">
+                          {ov.startDate} to {ov.endDate}
+                        </td>
+                        <td className="py-3 px-4 font-bold text-blue-600">
+                          {surchargePct >= 0 ? `+${surchargePct}%` : `${surchargePct}%`}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
-            </div>
-            <div className="text-[11px] text-slate-400">
-              * Precedence Hierarchy: <strong>Vehicle Scope</strong> &gt; <strong>Category Scope</strong> &gt; <strong>Global Scope</strong>.
             </div>
           </div>
         </div>
 
-        {/* Right (5 cols): Interactive Quote Verifier (PRD §9.4 Acceptance Harness) */}
-        <div className="lg:col-span-5 sticky top-24">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-              <Calculator className="w-4 h-4 text-blue-600" />
-              <h3 className="text-sm font-bold text-slate-900">Rate Calculation Verification Sandbox</h3>
+        {/* Right (5 cols): Live Interactive Calculator */}
+        <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+            <Calculator className="w-4 h-4 text-blue-600" />
+            <h3 className="text-sm font-bold text-slate-900">Live Rate Simulator</h3>
+          </div>
+
+          <div className="space-y-4 text-xs">
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Base Daily Tariff (₦)</label>
+              <input
+                type="number"
+                step={5000}
+                value={testBaseRate}
+                onChange={(e) => setTestBaseRate(Number(e.target.value))}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="block text-slate-600 font-semibold mb-1">
-                  Base Daily Rate (NGN):
-                </label>
-                <input
-                  type="number"
-                  value={testBaseRate}
-                  onChange={(e) => setTestBaseRate(Number(e.target.value))}
-                  step={5000}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-mono font-bold text-slate-900"
-                />
-              </div>
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">Rental Duration (Days)</label>
+              <input
+                type="number"
+                min={1}
+                max={30}
+                value={testDays}
+                onChange={(e) => setTestDays(Number(e.target.value))}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 font-mono text-slate-700">
-                <div className="flex justify-between">
-                  <span>Friday (Base Rate):</span>
-                  <span>{formatCurrency(testBaseRate * 100)}</span>
-                </div>
-                <div className="flex justify-between text-blue-600 font-semibold">
-                  <span>Saturday (+10% Weekend):</span>
-                  <span>{formatCurrency(Math.round(testBaseRate * 1.1) * 100)}</span>
-                </div>
-                <div className="flex justify-between text-blue-600 font-semibold">
-                  <span>Sunday (+10% Weekend):</span>
-                  <span>{formatCurrency(Math.round(testBaseRate * 1.1) * 100)}</span>
-                </div>
-                <div className="pt-2 border-t border-slate-300 flex justify-between font-bold text-slate-900 text-sm">
-                  <span>Expected Total (Fri-Mon):</span>
-                  <span>{formatCurrency(testSubtotal * 100)}</span>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="incWeekend"
+                checked={includeWeekend}
+                onChange={(e) => setIncludeWeekend(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded border-slate-300"
+              />
+              <label htmlFor="incWeekend" className="font-semibold text-slate-700 cursor-pointer">
+                Commence on weekend (+{weekendSurcharge}%)
+              </label>
+            </div>
 
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 space-y-1">
-                <div className="font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Verified Standard 72-Hour Interval:</span>
-                </div>
-                <p>
-                  Base NGN 30,000 for Friday 10:00 to Monday 10:00 calculates exactly as: 30,000 + 33,000 + 33,000 = <strong>NGN 96,000</strong>.
-                </p>
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 mt-4">
+              <div className="flex justify-between font-medium text-slate-600">
+                <span>Calculated Total Quote:</span>
+                <span className="font-black font-mono text-base text-slate-900">
+                  {formatCurrency(testSubtotal * 100)}
+                </span>
               </div>
+              <p className="text-[10px] text-slate-400">
+                Pricing engine enforces 24-hour clock quantization and half-up arithmetic rounding.
+              </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* New Override Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 max-w-lg w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">Add Date-Specific Rate Override</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOverride} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1">Override Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Easter Holiday Peak Surcharge"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Scope</label>
+                  <select
+                    value={newScope}
+                    onChange={(e) => setNewScope(e.target.value as any)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="global">Global (All Fleet)</option>
+                    <option value="category">Category Specific</option>
+                    <option value="vehicle">Single Vehicle Asset</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Rate Surcharge</label>
+                  <select
+                    value={newMultiplier}
+                    onChange={(e) => setNewMultiplier(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value={1.10}>+10% Holiday Surcharge</option>
+                    <option value={1.15}>+15% Peak Surcharge</option>
+                    <option value={1.20}>+20% High Demand</option>
+                    <option value={1.25}>+25% Super Peak</option>
+                    <option value={0.90}>-10% Off-Peak Discount</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Start Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={newStartDate}
+                    onChange={(e) => setNewStartDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">End Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={newEndDate}
+                    onChange={(e) => setNewEndDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1">Business Reason</label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. High demand during national conference dates."
+                  value={newReason}
+                  onChange={(e) => setNewReason(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-sm"
+                >
+                  Save Override Rule
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

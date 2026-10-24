@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings, Building, MapPin, Calendar, Clock,
   ShieldCheck, CheckCircle2, Save
 } from 'lucide-react';
+
+const SETTINGS_KEY = 'drivefleet_org_settings';
 
 export function OrgSettingsPage() {
   const [orgName, setOrgName] = useState('DriveFleet Technologies Ltd');
@@ -10,14 +12,44 @@ export function OrgSettingsPage() {
   const [timezone, setTimezone] = useState('Africa/Lagos');
   const [cutoffHours, setCutoffHours] = useState(24);
   const [defaultMileageKm, setDefaultMileageKm] = useState(200);
-  const [excessMileageRateMinor, setExcessMileageRateMinor] = useState(15000); // NGN 150/km
   const [turnaroundBufferMins, setTurnaroundBufferMins] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(SETTINGS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.orgName) setOrgName(parsed.orgName);
+        if (parsed.cutoffHours !== undefined) setCutoffHours(parsed.cutoffHours);
+        if (parsed.defaultMileageKm !== undefined) setDefaultMileageKm(parsed.defaultMileageKm);
+        if (parsed.turnaroundBufferMins !== undefined) setTurnaroundBufferMins(parsed.turnaroundBufferMins);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify({
+          orgName,
+          currency,
+          timezone,
+          cutoffHours,
+          defaultMileageKm,
+          turnaroundBufferMins,
+        })
+      );
+    } catch (e) {
+      console.error(e);
+    }
+
     setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2500);
+    setTimeout(() => setIsSaved(false), 3000);
   };
 
   return (
@@ -52,7 +84,7 @@ export function OrgSettingsPage() {
                 type="text"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
 
@@ -83,7 +115,7 @@ export function OrgSettingsPage() {
                 value={turnaroundBufferMins}
                 onChange={(e) => setTurnaroundBufferMins(Number(e.target.value))}
                 min={0}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
                 Source default is 0 minutes. If set, expands the blocked availability window after rental.
@@ -109,7 +141,7 @@ export function OrgSettingsPage() {
                 value={cutoffHours}
                 onChange={(e) => setCutoffHours(Number(e.target.value))}
                 min={1}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
                 Changes within this window require authorized staff handling with a recorded reason.
@@ -125,7 +157,7 @@ export function OrgSettingsPage() {
                 value={defaultMileageKm}
                 onChange={(e) => setDefaultMileageKm(Number(e.target.value))}
                 min={50}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
           </div>
@@ -134,7 +166,7 @@ export function OrgSettingsPage() {
         {/* Save Button */}
         <div className="flex items-center justify-between pt-2">
           {isSaved ? (
-            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 animate-fade-in">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Settings updated & applied to future calculations.</span>
             </span>

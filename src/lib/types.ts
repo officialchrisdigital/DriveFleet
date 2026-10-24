@@ -51,6 +51,11 @@ export interface CrmCustomer {
   lastName: string;
   email?: string;
   phone?: string;
+  company?: string;
+  status?: 'active' | 'flagged' | 'vip';
+  rentalsCount?: number;
+  notesCount?: number;
+  notes?: CrmNote[];
   renterDetails: RenterDetails;
   linkedUserId?: string;
   createdBy: string;

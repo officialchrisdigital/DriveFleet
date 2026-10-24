@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { downloadCsv } from '@/lib/csvExport';
 import {
   Activity, Search, Filter, ShieldCheck, Clock,
-  User, CheckCircle2, AlertTriangle, Lock
+  User, CheckCircle2, AlertTriangle, Lock, Download
 } from 'lucide-react';
 
 export function AuditTrailPage() {
@@ -60,6 +61,19 @@ export function AuditTrailPage() {
     return true;
   });
 
+  const handleExportCsv = () => {
+    const rows = filtered.map((e) => ({
+      'ID': e.id,
+      'Timestamp': e.timestamp,
+      'Action Event': e.action,
+      'Affected Entity': e.entity,
+      'Acting Staff / Sentinel': e.actor,
+      'Operational Reason': e.reason,
+      'Type': e.type,
+    }));
+    downloadCsv('drivefleet-audit-trail.csv', rows);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -69,7 +83,7 @@ export function AuditTrailPage() {
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
               Operational Audit Trail & Ledger
             </h1>
-            <span className="text-[10px] font-bold text-slate-500 uppercase px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
+            <span className="text-[10px] font-bold text-slate-500 uppercase px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200">
               Immutable Ledger
             </span>
           </div>
@@ -82,7 +96,7 @@ export function AuditTrailPage() {
           <select
             value={filterEntity}
             onChange={(e) => setFilterEntity(e.target.value)}
-            className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 shadow-sm"
+            className="bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Audit Entities</option>
             <option value="booking">Bookings</option>
@@ -90,10 +104,18 @@ export function AuditTrailPage() {
             <option value="pricing">Pricing Rules</option>
             <option value="system">System Sentinel</option>
           </select>
+
+          <button
+            onClick={handleExportCsv}
+            className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition-colors"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
 
-      {/* Audit Log Table (Exact Mockup Match) */}
+      {/* Audit Log Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">

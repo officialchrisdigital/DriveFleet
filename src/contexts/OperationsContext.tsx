@@ -1,0 +1,924 @@
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  Vehicle, Booking, CrmCustomer, MaintenanceTask,
+  VehicleOperationalState, BookingStatus
+} from '@/lib/types';
+import { DEMO_VEHICLES } from '@/lib/demo-data';
+
+export interface PromoItem {
+  code: string;
+  name: string;
+  discountType: 'percentage' | 'flat';
+  discountValue: number;
+  minDurationDays: number;
+  active: boolean;
+  usageCount: number;
+  expiresAt: string;
+}
+
+export interface PricingOverrideItem {
+  id: string;
+  name: string;
+  scope: 'global' | 'category' | 'vehicle';
+  targetId?: string;
+  startDate: string;
+  endDate: string;
+  multiplier: number;
+  flatRateMinor?: number;
+  reason: string;
+}
+
+export interface TeamMemberItem {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: 'admin' | 'staff';
+  phone?: string;
+  branch: string;
+  active: boolean;
+  avatarUrl?: string;
+  createdAt: string;
+}
+
+export interface OperationsContextType {
+  vehicles: Vehicle[];
+  customers: CrmCustomer[];
+  bookings: Booking[];
+  maintenanceTasks: MaintenanceTask[];
+  promos: PromoItem[];
+  pricingOverrides: PricingOverrideItem[];
+  teamMembers: TeamMemberItem[];
+
+  // Vehicle Actions
+  addVehicle: (vehicleData: Partial<Vehicle>) => Vehicle;
+  updateVehicle: (id: string, updates: Partial<Vehicle>) => void;
+  deleteVehicle: (id: string) => void;
+
+  // Customer Actions
+  addCustomer: (customerData: Partial<CrmCustomer>) => CrmCustomer;
+  updateCustomer: (id: string, updates: Partial<CrmCustomer>) => void;
+
+  // Booking Actions
+  addBooking: (bookingData: Partial<Booking>) => Booking;
+  updateBooking: (id: string, updates: Partial<Booking>) => void;
+  cancelBooking: (id: string, reason?: string) => void;
+
+  // Maintenance Actions
+  addMaintenanceTask: (taskData: Partial<MaintenanceTask>) => MaintenanceTask;
+  updateMaintenanceTask: (id: string, updates: Partial<MaintenanceTask>) => void;
+  completeMaintenanceTask: (id: string) => void;
+
+  // Promo Actions
+  addPromo: (promo: Omit<PromoItem, 'usageCount'>) => void;
+  togglePromo: (code: string) => void;
+
+  // Pricing Actions
+  addPricingOverride: (override: Omit<PricingOverrideItem, 'id'>) => void;
+
+  // Team Actions
+  addTeamMember: (member: Omit<TeamMemberItem, 'id' | 'createdAt'>) => void;
+  toggleTeamMember: (id: string) => void;
+
+  // Conflict Checking
+  checkAvailability: (
+    vehicleId: string,
+    pickupAt: string,
+    returnAt: string,
+    excludeBookingId?: string
+  ) => { available: boolean; conflictReason?: string };
+}
+
+const STORAGE_KEYS = {
+  VEHICLES: 'drivefleet_vehicles',
+  CUSTOMERS: 'drivefleet_customers',
+  BOOKINGS: 'drivefleet_bookings',
+  MAINTENANCE: 'drivefleet_maintenance',
+  PROMOS: 'drivefleet_promos',
+  PRICING: 'drivefleet_pricing_overrides',
+  TEAM: 'drivefleet_team_members',
+  REGISTERED_USERS: 'drivefleet_registered_users',
+};
+
+const SEED_CUSTOMERS: CrmCustomer[] = [
+  {
+    id: 'c-adeyemi',
+    firstName: 'Chukwudi',
+    lastName: 'Adeyemi',
+    company: 'Enterprise Dynamics Lagos',
+    email: 'c.adeyemi@enterprise-lagos.ng',
+    phone: '+234 803 555 0192',
+    status: 'active',
+    rentalsCount: 6,
+    notesCount: 2,
+    createdBy: 'system',
+    createdAt: '2026-01-10T09:00:00Z',
+    renterDetails: {
+      licenseNumber: 'FRSC-LAG-8492018B',
+      licenseExpiry: '24 Aug 2028',
+      verifiedOnline: true,
+    },
+  },
+  {
+    id: 'n-eze',
+    firstName: 'Dr. Ngozi',
+    lastName: 'Eze',
+    company: 'Abuja Medical Consult',
+    email: 'ngozi.eze@abuja-health.gov.ng',
+    phone: '+234 802 333 4455',
+    status: 'active',
+    rentalsCount: 3,
+    notesCount: 1,
+    createdBy: 'system',
+    createdAt: '2026-02-14T11:30:00Z',
+    renterDetails: {
+      licenseNumber: 'FRSC-ABJ-3192020A',
+      licenseExpiry: '15 May 2027',
+      verifiedOnline: true,
+    },
+  },
+  {
+    id: 't-mansoor',
+    firstName: 'Tariq',
+    lastName: 'Al-Mansoor',
+    company: 'Diplomatic Mission Trade Office',
+    email: 't.mansoor@trade-diplomatic.org',
+    phone: '+234 809 111 8899',
+    status: 'vip',
+    rentalsCount: 8,
+    notesCount: 4,
+    createdBy: 'system',
+    createdAt: '2026-01-20T14:15:00Z',
+    renterDetails: {
+      licenseNumber: 'INTL-PERMIT-DXB-902',
+      licenseExpiry: '10 Nov 2029',
+      verifiedOnline: true,
+    },
+  },
+  {
+    id: 'c-okonkwo',
+    firstName: 'Chidi',
+    lastName: 'Okonkwo',
+    company: 'Okonkwo & Sons Logistics',
+    email: 'chidi@okonkwo-logistics.com',
+    phone: '+234 805 777 9900',
+    status: 'flagged',
+    rentalsCount: 4,
+    notesCount: 3,
+    createdBy: 'system',
+    createdAt: '2026-03-01T08:45:00Z',
+    renterDetails: {
+      licenseNumber: 'FRSC-LAG-1102948C',
+      licenseExpiry: '04 Jan 2026',
+      verifiedOnline: false,
+    },
+  },
+];
+
+const SEED_BOOKINGS: Booking[] = [
+  {
+    id: 'b-9812',
+    reference: 'DF-2026-9812',
+    customerId: 'c-adeyemi',
+    vehicleId: 'rav4-802',
+    branchId: 'b0000000-0000-0000-0000-000000000001',
+    pickupAt: '2026-10-25T09:00:00Z',
+    returnAt: '2026-10-28T18:00:00Z',
+    status: 'confirmed',
+    sourceChannel: 'customer',
+    currentVersion: 1,
+    createdAt: '2026-10-22T08:30:00Z',
+    quote: {
+      billedPeriods: 3,
+      lineItems: [],
+      subtotalMinor: 13500000,
+      durationTier: null,
+      durationDiscountPercent: 0,
+      durationDiscountMinor: 0,
+      afterDurationMinor: 13500000,
+      promoDiscountMinor: 0,
+      afterPromoMinor: 13500000,
+      feesMinor: 0,
+      depositMinor: 5000000,
+      totalMinor: 18500000,
+      currency: 'NGN',
+    },
+  },
+  {
+    id: 'b-3829',
+    reference: 'DF-2026-3829',
+    customerId: 'c-okonkwo',
+    vehicleId: 'camry-482',
+    branchId: 'b0000000-0000-0000-0000-000000000001',
+    pickupAt: '2026-10-22T10:00:00Z',
+    returnAt: '2026-10-24T10:00:00Z',
+    status: 'active',
+    sourceChannel: 'staff',
+    currentVersion: 1,
+    createdAt: '2026-10-21T15:20:00Z',
+    quote: {
+      billedPeriods: 2,
+      lineItems: [],
+      subtotalMinor: 9600000,
+      durationTier: null,
+      durationDiscountPercent: 0,
+      durationDiscountMinor: 0,
+      afterDurationMinor: 9600000,
+      promoDiscountMinor: 0,
+      afterPromoMinor: 9600000,
+      feesMinor: 0,
+      depositMinor: 5000000,
+      totalMinor: 14600000,
+      currency: 'NGN',
+    },
+  },
+  {
+    id: 'b-1044',
+    reference: 'DF-2026-1044',
+    customerId: 'n-eze',
+    vehicleId: 'crv-501',
+    branchId: 'b0000000-0000-0000-0000-000000000002',
+    pickupAt: '2026-10-26T08:00:00Z',
+    returnAt: '2026-10-29T17:00:00Z',
+    status: 'confirmed',
+    sourceChannel: 'staff',
+    currentVersion: 1,
+    createdAt: '2026-10-23T11:00:00Z',
+    quote: {
+      billedPeriods: 3,
+      lineItems: [],
+      subtotalMinor: 15000000,
+      durationTier: null,
+      durationDiscountPercent: 0,
+      durationDiscountMinor: 0,
+      afterDurationMinor: 15000000,
+      promoDiscountMinor: 0,
+      afterPromoMinor: 15000000,
+      feesMinor: 0,
+      depositMinor: 5000000,
+      totalMinor: 20000000,
+      currency: 'NGN',
+    },
+  },
+  {
+    id: 'b-7731',
+    reference: 'DF-2026-7731',
+    customerId: 't-mansoor',
+    vehicleId: 'c300-992',
+    branchId: 'b0000000-0000-0000-0000-000000000001',
+    pickupAt: '2026-10-15T09:00:00Z',
+    returnAt: '2026-10-18T18:00:00Z',
+    status: 'completed',
+    sourceChannel: 'customer',
+    currentVersion: 1,
+    createdAt: '2026-10-14T10:00:00Z',
+    quote: {
+      billedPeriods: 3,
+      lineItems: [],
+      subtotalMinor: 32000000,
+      durationTier: null,
+      durationDiscountPercent: 0,
+      durationDiscountMinor: 0,
+      afterDurationMinor: 32000000,
+      promoDiscountMinor: 0,
+      afterPromoMinor: 32000000,
+      feesMinor: 0,
+      depositMinor: 10000000,
+      totalMinor: 42000000,
+      currency: 'NGN',
+    },
+  },
+];
+
+const SEED_MAINTENANCE: MaintenanceTask[] = [
+  {
+    id: 'm-rio-brake',
+    vehicleId: 'rio-330',
+    taskType: 'Brake Pads & Rotor Overhaul',
+    reason: 'Brake lining wear threshold reached during 50,000 km audit',
+    priority: 'urgent',
+    status: 'in_progress',
+    assigneeName: 'Babatunde Ade (Master Tech)',
+    scheduledStart: '2026-10-23T08:00:00Z',
+    scheduledEnd: '2026-10-26T18:00:00Z',
+    estimatedCostMinor: 8500000, // NGN 85,000
+    blocksAvailability: true,
+    createdBy: 'amara@drivefleet.demo',
+    createdAt: '2026-10-22T08:00:00Z',
+  },
+  {
+    id: 'm-camry-40k',
+    vehicleId: 'camry-104',
+    taskType: '40,000 km Scheduled Factory Service',
+    reason: 'Telemetry threshold approaching (39,850 km current)',
+    priority: 'high',
+    status: 'scheduled',
+    assigneeName: 'Amara Kalu (Fleet Lead)',
+    scheduledStart: '2026-10-28T09:00:00Z',
+    scheduledEnd: '2026-10-29T17:00:00Z',
+    estimatedCostMinor: 4500000, // NGN 45,000
+    blocksAvailability: true,
+    createdBy: 'amara@drivefleet.demo',
+    createdAt: '2026-10-22T09:30:00Z',
+  },
+  {
+    id: 'm-c300-detail',
+    vehicleId: 'c300-992',
+    taskType: 'Executive Ceramic Coating & Detailing',
+    reason: 'VIP Diplomatic Escort Preparation',
+    priority: 'low',
+    status: 'completed',
+    assigneeName: 'Marcus Vance',
+    scheduledStart: '2026-10-15T08:00:00Z',
+    scheduledEnd: '2026-10-16T16:00:00Z',
+    estimatedCostMinor: 6000000,
+    actualCostMinor: 5800000,
+    blocksAvailability: false,
+    createdBy: 'marcus@drivefleet.demo',
+    createdAt: '2026-10-14T08:00:00Z',
+  },
+];
+
+const SEED_PROMOS: PromoItem[] = [
+  {
+    code: 'DRIVE2026',
+    name: 'New Year DriveFleet Launch Special',
+    discountType: 'percentage',
+    discountValue: 10,
+    minDurationDays: 2,
+    active: true,
+    usageCount: 42,
+    expiresAt: '2026-12-31',
+  },
+  {
+    code: 'ABUJAEXP',
+    name: 'FCT Diplomatic & Enterprise Rebate',
+    discountType: 'percentage',
+    discountValue: 15,
+    minDurationDays: 3,
+    active: true,
+    usageCount: 18,
+    expiresAt: '2026-11-30',
+  },
+  {
+    code: 'WEEKEND20',
+    name: 'Weekend Getaway Flat Deduction',
+    discountType: 'flat',
+    discountValue: 20000, // NGN 20,000
+    minDurationDays: 2,
+    active: true,
+    usageCount: 29,
+    expiresAt: '2026-12-15',
+  },
+];
+
+const SEED_PRICING_OVERRIDES: PricingOverrideItem[] = [
+  {
+    id: 'po-dec-holiday',
+    name: 'December Peak Festive Holiday Surcharge',
+    scope: 'global',
+    startDate: '2026-12-15',
+    endDate: '2027-01-08',
+    multiplier: 1.25,
+    reason: 'Annual national transport demand surge across Lagos and Abuja corridors',
+  },
+  {
+    id: 'po-independence',
+    name: 'National Independence Long Weekend',
+    scope: 'category',
+    targetId: 'luxury',
+    startDate: '2026-10-01',
+    endDate: '2026-10-04',
+    multiplier: 1.15,
+    reason: 'Executive escort high demand block',
+  },
+];
+
+const SEED_TEAM: TeamMemberItem[] = [
+  {
+    id: 'tm-1',
+    firstName: 'Marcus',
+    lastName: 'Vance',
+    email: 'marcus@drivefleet.demo',
+    role: 'admin',
+    phone: '+234 809 999 8877',
+    branch: 'All Branches (HQ)',
+    active: true,
+    avatarUrl: 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&q=80&w=400',
+    createdAt: '2026-01-15T08:00:00Z',
+  },
+  {
+    id: 'tm-2',
+    firstName: 'Amara',
+    lastName: 'Kalu',
+    email: 'amara@drivefleet.demo',
+    role: 'staff',
+    phone: '+234 802 111 2233',
+    branch: 'Lagos Ikeja Main Hub',
+    active: true,
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
+    createdAt: '2026-02-01T08:00:00Z',
+  },
+  {
+    id: 'tm-3',
+    firstName: 'Ibrahim',
+    lastName: 'Musa',
+    email: 'ibrahim@drivefleet.demo',
+    role: 'staff',
+    phone: '+234 802 987 6543',
+    branch: 'Abuja Central Terminal',
+    active: true,
+    avatarUrl: 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?auto=format&fit=crop&q=80&w=400',
+    createdAt: '2026-02-10T08:00:00Z',
+  },
+];
+
+const OperationsContext = createContext<OperationsContextType | undefined>(undefined);
+
+export function OperationsProvider({ children }: { children: ReactNode }) {
+  // 1. Vehicles
+  const [vehicles, setVehicles] = useState<Vehicle[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.VEHICLES);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return DEMO_VEHICLES;
+  });
+
+  // 2. Customers
+  const [customers, setCustomers] = useState<CrmCustomer[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.CUSTOMERS);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return SEED_CUSTOMERS;
+  });
+
+  // 3. Bookings
+  const [bookings, setBookings] = useState<Booking[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.BOOKINGS);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return SEED_BOOKINGS;
+  });
+
+  // 4. Maintenance
+  const [maintenanceTasks, setMaintenanceTasks] = useState<MaintenanceTask[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.MAINTENANCE);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return SEED_MAINTENANCE;
+  });
+
+  // 5. Promos
+  const [promos, setPromos] = useState<PromoItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.PROMOS);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return SEED_PROMOS;
+  });
+
+  // 6. Pricing Overrides
+  const [pricingOverrides, setPricingOverrides] = useState<PricingOverrideItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.PRICING);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return SEED_PRICING_OVERRIDES;
+  });
+
+  // 7. Team
+  const [teamMembers, setTeamMembers] = useState<TeamMemberItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.TEAM);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return SEED_TEAM;
+  });
+
+  // Persist State to LocalStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.VEHICLES, JSON.stringify(vehicles));
+  }, [vehicles]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(customers));
+  }, [customers]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify(bookings));
+  }, [bookings]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.MAINTENANCE, JSON.stringify(maintenanceTasks));
+  }, [maintenanceTasks]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PROMOS, JSON.stringify(promos));
+  }, [promos]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PRICING, JSON.stringify(pricingOverrides));
+  }, [pricingOverrides]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(teamMembers));
+  }, [teamMembers]);
+
+  // AUTO-SYNC: Watch registered storefront users and automatically synchronize into Customer CRM
+  useEffect(() => {
+    const syncRegisteredUsers = () => {
+      try {
+        const storedUsers = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
+        if (!storedUsers) return;
+        const registered = JSON.parse(storedUsers);
+        if (!Array.isArray(registered)) return;
+
+        setCustomers((prevCustomers) => {
+          let updated = [...prevCustomers];
+          let changed = false;
+
+          for (const item of registered) {
+            const u = item.user;
+            if (!u || !u.email) continue;
+
+            const existingIdx = updated.findIndex(
+              (c) => c.id === u.id || (c.email && c.email.toLowerCase() === u.email.toLowerCase())
+            );
+
+            if (existingIdx === -1) {
+              // Add new customer from registration
+              updated.unshift({
+                id: u.id || `crm-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+                firstName: u.firstName || 'New',
+                lastName: u.lastName || 'Customer',
+                company: 'Direct Consumer',
+                email: u.email,
+                phone: u.phone || '+234 800 000 0000',
+                status: 'active',
+                rentalsCount: 0,
+                notesCount: 0,
+                createdBy: 'self-registered',
+                createdAt: u.createdAt || new Date().toISOString(),
+                renterDetails: item.renterDetails || {
+                  licenseNumber: 'Self-Registered Verification Pending',
+                  verifiedOnline: false,
+                },
+              });
+              changed = true;
+            }
+          }
+
+          return changed ? updated : prevCustomers;
+        });
+      } catch (err) {
+        console.warn('CRM sync error:', err);
+      }
+    };
+
+    syncRegisteredUsers();
+    window.addEventListener('storage', syncRegisteredUsers);
+    return () => window.removeEventListener('storage', syncRegisteredUsers);
+  }, []);
+
+  // Conflict Checking Engine
+  const checkAvailability = (
+    vehicleId: string,
+    pickupAt: string,
+    returnAt: string,
+    excludeBookingId?: string
+  ): { available: boolean; conflictReason?: string } => {
+    const pTime = new Date(pickupAt).getTime();
+    const rTime = new Date(returnAt).getTime();
+
+    if (isNaN(pTime) || isNaN(rTime) || pTime >= rTime) {
+      return { available: false, conflictReason: 'Invalid rental date range selected.' };
+    }
+
+    // 1. Check vehicle operational state
+    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    if (!vehicle) {
+      return { available: false, conflictReason: 'Vehicle not found in inventory.' };
+    }
+    if (vehicle.operationalState === 'out_of_service') {
+      return { available: false, conflictReason: 'Vehicle is currently Out of Service.' };
+    }
+
+    // 2. Check maintenance blocks
+    const maintConflict = maintenanceTasks.find((m) => {
+      if (m.vehicleId !== vehicleId || m.status === 'completed' || m.status === 'cancelled') {
+        return false;
+      }
+      if (!m.blocksAvailability || !m.scheduledStart || !m.scheduledEnd) return false;
+      const mStart = new Date(m.scheduledStart).getTime();
+      const mEnd = new Date(m.scheduledEnd).getTime();
+      return pTime < mEnd && rTime > mStart;
+    });
+
+    if (maintConflict) {
+      return {
+        available: false,
+        conflictReason: `Vehicle has a scheduled maintenance block (${maintConflict.taskType}) during this period.`,
+      };
+    }
+
+    // 3. Check overlapping bookings
+    const bookingConflict = bookings.find((b) => {
+      if (b.id === excludeBookingId) return false;
+      if (b.vehicleId !== vehicleId) return false;
+      if (b.status === 'cancelled' || b.status === 'completed') return false;
+      const bStart = new Date(b.pickupAt).getTime();
+      const bEnd = new Date(b.returnAt).getTime();
+      return pTime < bEnd && rTime > bStart;
+    });
+
+    if (bookingConflict) {
+      return {
+        available: false,
+        conflictReason: `Vehicle is already reserved on booking #${bookingConflict.reference} during this period.`,
+      };
+    }
+
+    return { available: true };
+  };
+
+  // Vehicle Methods
+  const addVehicle = (vehicleData: Partial<Vehicle>): Vehicle => {
+    const newVehicle: Vehicle = {
+      id: vehicleData.id || `veh-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      branchId: vehicleData.branchId || 'b0000000-0000-0000-0000-000000000001',
+      branch: vehicleData.branch || {
+        id: vehicleData.branchId || 'b0000000-0000-0000-0000-000000000001',
+        orgId: 'org-001',
+        name: vehicleData.branchId?.includes('2') ? 'Abuja Central Terminal' : 'Lagos Ikeja Main Hub',
+        city: vehicleData.branchId?.includes('2') ? 'Abuja' : 'Lagos',
+        active: true,
+        createdAt: new Date().toISOString(),
+      },
+      make: vehicleData.make || 'Toyota',
+      model: vehicleData.model || 'Corolla',
+      year: vehicleData.year || 2024,
+      plate: vehicleData.plate?.toUpperCase() || 'LAG-100-DF',
+      category: vehicleData.category || 'sedan',
+      seats: vehicleData.seats || 5,
+      transmission: vehicleData.transmission || 'automatic',
+      fuelType: vehicleData.fuelType || 'petrol',
+      baseRateMinor: vehicleData.baseRateMinor || 4500000,
+      mileageAllowanceKm: vehicleData.mileageAllowanceKm || 200,
+      currentOdometerKm: vehicleData.currentOdometerKm || 12000,
+      operationalState: vehicleData.operationalState || 'ready',
+      archived: false,
+      serviceThresholds: vehicleData.serviceThresholds || { intervalKm: 10000 },
+      images: vehicleData.images?.length
+        ? vehicleData.images
+        : ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800'],
+      createdAt: new Date().toISOString(),
+    };
+
+    setVehicles((prev) => [newVehicle, ...prev]);
+    return newVehicle;
+  };
+
+  const updateVehicle = (id: string, updates: Partial<Vehicle>) => {
+    setVehicles((prev) =>
+      prev.map((v) => (v.id === id ? { ...v, ...updates, updatedAt: new Date().toISOString() } : v))
+    );
+  };
+
+  const deleteVehicle = (id: string) => {
+    setVehicles((prev) => prev.filter((v) => v.id !== id));
+  };
+
+  // Customer Methods
+  const addCustomer = (customerData: Partial<CrmCustomer>): CrmCustomer => {
+    const newCustomer: CrmCustomer = {
+      id: customerData.id || `crm-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      firstName: customerData.firstName || 'Anonymous',
+      lastName: customerData.lastName || 'Client',
+      company: customerData.company || 'Private Customer',
+      email: customerData.email || `client-${Date.now()}@example.com`,
+      phone: customerData.phone || '+234 800 000 0000',
+      status: customerData.status || 'active',
+      rentalsCount: 0,
+      notesCount: customerData.notes?.length || 0,
+      notes: customerData.notes || [],
+      createdBy: 'staff',
+      createdAt: new Date().toISOString(),
+      renterDetails: customerData.renterDetails || {
+        licenseNumber: 'FRSC-PENDING',
+        verifiedOnline: true,
+      },
+    };
+
+    setCustomers((prev) => [newCustomer, ...prev]);
+    return newCustomer;
+  };
+
+  const updateCustomer = (id: string, updates: Partial<CrmCustomer>) => {
+    setCustomers((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c))
+    );
+  };
+
+  // Booking Methods
+  const addBooking = (bookingData: Partial<Booking>): Booking => {
+    const referenceNum = Math.floor(1000 + Math.random() * 9000);
+    const newBooking: Booking = {
+      id: bookingData.id || `b-${Date.now()}`,
+      reference: bookingData.reference || `DF-2026-${referenceNum}`,
+      customerId: bookingData.customerId || (customers[0]?.id ?? 'c-adeyemi'),
+      vehicleId: bookingData.vehicleId || (vehicles[0]?.id ?? 'rav4-802'),
+      branchId: bookingData.branchId || 'b0000000-0000-0000-0000-000000000001',
+      pickupAt: bookingData.pickupAt || new Date().toISOString(),
+      returnAt:
+        bookingData.returnAt || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      status: bookingData.status || 'confirmed',
+      sourceChannel: bookingData.sourceChannel || 'staff',
+      currentVersion: 1,
+      createdAt: new Date().toISOString(),
+      quote: bookingData.quote || {
+        billedPeriods: 3,
+        lineItems: [],
+        subtotalMinor: 13500000,
+        durationTier: null,
+        durationDiscountPercent: 0,
+        durationDiscountMinor: 0,
+        afterDurationMinor: 13500000,
+        promoDiscountMinor: 0,
+        afterPromoMinor: 13500000,
+        feesMinor: 0,
+        depositMinor: 5000000,
+        totalMinor: 18500000,
+        currency: 'NGN',
+      },
+    };
+
+    setBookings((prev) => [newBooking, ...prev]);
+
+    // Update customer rental count
+    setCustomers((prev) =>
+      prev.map((c) =>
+        c.id === newBooking.customerId ? { ...c, rentalsCount: (c.rentalsCount || 0) + 1 } : c
+      )
+    );
+
+    return newBooking;
+  };
+
+  const updateBooking = (id: string, updates: Partial<Booking>) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, ...updates, updatedAt: new Date().toISOString() } : b))
+    );
+  };
+
+  const cancelBooking = (id: string, reason?: string) => {
+    setBookings((prev) =>
+      prev.map((b) =>
+        b.id === id
+          ? {
+              ...b,
+              status: 'cancelled',
+              updatedAt: new Date().toISOString(),
+              latestVersion: b.latestVersion
+                ? { ...b.latestVersion, changeReason: reason || 'Cancelled by staff/admin' }
+                : undefined,
+            }
+          : b
+      )
+    );
+  };
+
+  // Maintenance Methods
+  const addMaintenanceTask = (taskData: Partial<MaintenanceTask>): MaintenanceTask => {
+    const newTask: MaintenanceTask = {
+      id: taskData.id || `m-${Date.now()}`,
+      vehicleId: taskData.vehicleId || vehicles[0].id,
+      taskType: taskData.taskType || 'Scheduled Inspection',
+      reason: taskData.reason || 'Routine preventative check',
+      priority: taskData.priority || 'medium',
+      status: taskData.status || 'scheduled',
+      assigneeName: taskData.assigneeName || 'Senior Technician',
+      scheduledStart: taskData.scheduledStart || new Date().toISOString(),
+      scheduledEnd:
+        taskData.scheduledEnd || new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      estimatedCostMinor: taskData.estimatedCostMinor || 5000000,
+      blocksAvailability: taskData.blocksAvailability ?? true,
+      notes: taskData.notes || '',
+      createdBy: 'operations',
+      createdAt: new Date().toISOString(),
+    };
+
+    setMaintenanceTasks((prev) => [newTask, ...prev]);
+
+    // If blocks availability, adjust vehicle operational state
+    if (newTask.blocksAvailability) {
+      updateVehicle(newTask.vehicleId, { operationalState: 'in_maintenance' });
+    }
+
+    return newTask;
+  };
+
+  const updateMaintenanceTask = (id: string, updates: Partial<MaintenanceTask>) => {
+    setMaintenanceTasks((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, ...updates, updatedAt: new Date().toISOString() } : m))
+    );
+  };
+
+  const completeMaintenanceTask = (id: string) => {
+    const task = maintenanceTasks.find((m) => m.id === id);
+    if (!task) return;
+
+    setMaintenanceTasks((prev) =>
+      prev.map((m) =>
+        m.id === id
+          ? { ...m, status: 'completed', completedAt: new Date().toISOString() }
+          : m
+      )
+    );
+
+    // Release vehicle back to 'ready'
+    if (task.blocksAvailability) {
+      updateVehicle(task.vehicleId, { operationalState: 'ready' });
+    }
+  };
+
+  // Promo Methods
+  const addPromo = (promo: Omit<PromoItem, 'usageCount'>) => {
+    setPromos((prev) => [{ ...promo, usageCount: 0 }, ...prev]);
+  };
+
+  const togglePromo = (code: string) => {
+    setPromos((prev) =>
+      prev.map((p) => (p.code === code ? { ...p, active: !p.active } : p))
+    );
+  };
+
+  // Pricing Methods
+  const addPricingOverride = (override: Omit<PricingOverrideItem, 'id'>) => {
+    const item: PricingOverrideItem = {
+      ...override,
+      id: `po-${Date.now()}`,
+    };
+    setPricingOverrides((prev) => [item, ...prev]);
+  };
+
+  // Team Methods
+  const addTeamMember = (member: Omit<TeamMemberItem, 'id' | 'createdAt'>) => {
+    const item: TeamMemberItem = {
+      ...member,
+      id: `tm-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setTeamMembers((prev) => [item, ...prev]);
+  };
+
+  const toggleTeamMember = (id: string) => {
+    setTeamMembers((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, active: !t.active } : t))
+    );
+  };
+
+  return (
+    <OperationsContext.Provider
+      value={{
+        vehicles,
+        customers,
+        bookings,
+        maintenanceTasks,
+        promos,
+        pricingOverrides,
+        teamMembers,
+        addVehicle,
+        updateVehicle,
+        deleteVehicle,
+        addCustomer,
+        updateCustomer,
+        addBooking,
+        updateBooking,
+        cancelBooking,
+        addMaintenanceTask,
+        updateMaintenanceTask,
+        completeMaintenanceTask,
+        addPromo,
+        togglePromo,
+        addPricingOverride,
+        addTeamMember,
+        toggleTeamMember,
+        checkAvailability,
+      }}
+    >
+      {children}
+    </OperationsContext.Provider>
+  );
+}
+
+export function useOperations() {
+  const ctx = useContext(OperationsContext);
+  if (!ctx) {
+    throw new Error('useOperations must be used within an OperationsProvider');
+  }
+  return ctx;
+}
