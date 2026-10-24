@@ -119,7 +119,7 @@ export function VehiclesPage() {
             <select
               value={hub}
               onChange={(e) => setHub(e.target.value)}
-              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer"
             >
               <option value="all">All Available Hubs</option>
               <option value="Lagos Ikeja Main Hub">Lagos Ikeja Main Hub (GRA)</option>
@@ -146,7 +146,7 @@ export function VehiclesPage() {
                   setReturnDate(newReturn.toISOString().split('T')[0]);
                 }
               }}
-              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer"
             />
           </div>
 
@@ -159,7 +159,7 @@ export function VehiclesPage() {
             <select
               value={pickupTime}
               onChange={(e) => setPickupTime(e.target.value)}
-              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer"
             >
               {['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'].map((time) => (
                 <option key={time} value={time}>
@@ -180,7 +180,7 @@ export function VehiclesPage() {
               min={pickupDate || todayStr}
               value={returnDate}
               onChange={(e) => setReturnDate(e.target.value)}
-              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer"
             />
           </div>
 
@@ -193,7 +193,7 @@ export function VehiclesPage() {
             <select
               value={returnTime}
               onChange={(e) => setReturnTime(e.target.value)}
-              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="w-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer"
             >
               {['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'].map((time) => (
                 <option key={time} value={time}>
