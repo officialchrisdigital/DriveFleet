@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { formatCurrency } from '@/lib/formatters';
 import {
@@ -11,6 +12,7 @@ import {
 export function CustomerDetailPage() {
   const { customerId } = useParams<{ customerId: string }>();
   const { customers, bookings, updateCustomer } = useOperations();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const customer = customers.find((c) => c.id === customerId);
@@ -45,13 +47,17 @@ export function CustomerDetailPage() {
     e.preventDefault();
     if (!newNote.trim()) return;
 
+    const authorName = user
+      ? `${user.firstName} ${user.lastName} (${user.role.toUpperCase()})`
+      : 'Operations Officer';
+
     const updatedNotes = [
       ...(customer.notes || []),
       {
         id: `note-${Date.now()}`,
         customerId: customer.id,
-        authorId: 'staff',
-        authorName: 'Operations Officer',
+        authorId: user?.id || 'staff',
+        authorName,
         content: newNote.trim(),
         createdAt: new Date().toISOString(),
       },

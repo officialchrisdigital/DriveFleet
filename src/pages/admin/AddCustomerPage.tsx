@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { AvatarUploader } from '@/components/shared/AvatarUploader';
 import {
@@ -9,6 +10,7 @@ import {
 
 export function AddCustomerPage() {
   const { addCustomer } = useOperations();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState('');
@@ -47,13 +49,15 @@ export function AddCustomerPage() {
         licenseExpiry: licenseExpiry || '2028-12-31',
         verifiedOnline: true,
       },
+      createdBy: user?.id || user?.email || 'staff',
+      createdByName: user ? `${user.firstName} ${user.lastName} (${user.role.toUpperCase()})` : 'Front Desk Officer',
       notes: initialNote.trim()
         ? [
             {
               id: `note-${Date.now()}`,
               customerId: '',
-              authorId: 'staff',
-              authorName: 'Duty Officer',
+              authorId: user?.id || 'staff',
+              authorName: user ? `${user.firstName} ${user.lastName}` : 'Duty Officer',
               content: initialNote.trim(),
               createdAt: new Date().toISOString(),
             },

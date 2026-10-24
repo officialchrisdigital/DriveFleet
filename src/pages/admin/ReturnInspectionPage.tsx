@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { formatCurrency, formatKilometers } from '@/lib/formatters';
 import {
@@ -10,6 +11,7 @@ import {
 export function ReturnInspectionPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { bookings, vehicles, updateBooking, updateVehicle, addMaintenanceTask } = useOperations();
 
   const booking = bookings.find((b) => b.id === bookingId || b.reference === bookingId);
@@ -66,9 +68,15 @@ export function ReturnInspectionPage() {
 
     setIsSubmitting(true);
 
-    // 1. Mark booking completed
+    const officerName = user ? `${user.firstName} ${user.lastName} (${user.role.toUpperCase()})` : 'Return Officer';
+
+    // 1. Mark booking completed with authenticated officer attribution
     updateBooking(booking.id, {
       status: 'completed',
+      latestVersion: {
+        changeReason: `Vehicle checked in by ${officerName}. Final odometer: ${returnKm} km. Fuel: ${returnFuel}.`,
+        actorId: officerName,
+      } as any,
     });
 
     // 2. If vehicle marked unsafe or defects noted, put in maintenance; otherwise ready
@@ -88,6 +96,8 @@ export function ReturnInspectionPage() {
           assigneeName: 'Station Workshop Supervisor',
           blocksAvailability: true,
           notes: `Return Odometer: ${returnKm} km. Issues: ${defectNotes || 'Inspection flagged.'}`,
+          createdBy: user?.id || user?.email || 'operations',
+          createdByName: officerName,
         });
       } else {
         updateVehicle(vehicle.id, {

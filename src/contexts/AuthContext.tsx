@@ -237,6 +237,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(registered));
 
     setUser(newUser);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('drivefleet_profile_sync', { detail: { user: newUser, renterDetails: data.renterDetails } })
+      );
+      window.dispatchEvent(
+        new CustomEvent('drivefleet_auth_sync', { detail: { user: newUser } })
+      );
+    }
+
     return { success: true };
   };
 

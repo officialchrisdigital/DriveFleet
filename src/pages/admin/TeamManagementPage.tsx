@@ -17,6 +17,7 @@ export function TeamManagementPage() {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<'staff' | 'admin'>('staff');
   const [branch, setBranch] = useState('Lagos Central Hub (Ikeja)');
+  const [temporaryPassword, setTemporaryPassword] = useState('Staff@DriveFleet2026!');
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400'
   );
@@ -54,6 +55,7 @@ export function TeamManagementPage() {
       branch,
       active: true,
       avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+      password: temporaryPassword.trim(),
     });
 
     setIsModalOpen(false);
@@ -301,7 +303,13 @@ export function TeamManagementPage() {
                   <label className="block font-bold text-slate-700 uppercase mb-1">Role Permission</label>
                   <select
                     value={role}
-                    onChange={(e) => setRole(e.target.value as any)}
+                    onChange={(e) => {
+                      const newRole = e.target.value as 'staff' | 'admin';
+                      setRole(newRole);
+                      if (temporaryPassword === 'Staff@DriveFleet2026!' || temporaryPassword === 'Admin@DriveFleet2026!') {
+                        setTemporaryPassword(newRole === 'admin' ? 'Admin@DriveFleet2026!' : 'Staff@DriveFleet2026!');
+                      }
+                    }}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
                     <option value="staff">Station Staff / Dispatcher</option>
@@ -321,6 +329,22 @@ export function TeamManagementPage() {
                     <option value="Abuja Central Hub (Maitama)">Abuja Central Hub (Maitama)</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 uppercase mb-1">
+                  Initial Authentication Password *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={temporaryPassword}
+                  onChange={(e) => setTemporaryPassword(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  Member can immediately authenticate at /admin/login using their work email and this password.
+                </span>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { VehicleCategory, TransmissionType, FuelType } from '@/lib/types';
 import { VehicleImageUploader } from '@/components/admin/VehicleImageUploader';
@@ -10,6 +11,7 @@ import {
 
 export function AddVehiclePage() {
   const { addVehicle } = useOperations();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [make, setMake] = useState('');
@@ -71,6 +73,8 @@ export function AddVehiclePage() {
       fuelType,
       operationalState: 'ready',
       images: images.length > 0 ? images : [defaultImages[category]],
+      createdBy: user?.id || user?.email || 'operations',
+      createdByName: user ? `${user.firstName} ${user.lastName} (${user.role.toUpperCase()})` : 'Fleet Operations',
     });
 
     navigate(`/admin/vehicles/${newVehicle.id}`);

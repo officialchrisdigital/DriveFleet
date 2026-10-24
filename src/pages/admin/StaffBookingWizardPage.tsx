@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { formatCurrency, formatKilometers } from '@/lib/formatters';
 import {
@@ -9,6 +10,7 @@ import {
 
 export function StaffBookingWizardPage() {
   const { vehicles, customers, addBooking, checkAvailability } = useOperations();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -94,6 +96,8 @@ export function StaffBookingWizardPage() {
       returnAt: returnIso,
       status: 'confirmed',
       sourceChannel: 'staff',
+      createdBy: user?.id || user?.email || 'staff',
+      createdByName: user ? `${user.firstName} ${user.lastName} (${user.role.toUpperCase()})` : 'Duty Staff',
       quote: {
         billedPeriods: billedDays,
         lineItems: [],

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useOperations } from '@/contexts/OperationsContext';
 import { downloadCsv } from '@/lib/csvExport';
 import {
   Activity, Search, Filter, ShieldCheck, Clock,
@@ -6,58 +7,21 @@ import {
 } from 'lucide-react';
 
 export function AuditTrailPage() {
+  const { auditLogs } = useOperations();
   const [filterEntity, setFilterEntity] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const auditEntries = [
-    {
-      id: 'aud-001',
-      actor: 'Marcus Vance (Admin)',
-      action: 'BOOKING_LOCKED',
-      entity: 'Booking #DF-2026-9812',
-      reason: 'Customer completed simulated atomic checkout',
-      timestamp: 'Today @ 10:14:02 AM',
-      type: 'booking',
-    },
-    {
-      id: 'aud-002',
-      actor: 'Amara Kalu (Staff)',
-      action: 'MAINTENANCE_QUARANTINE_LOCKED',
-      entity: 'Vehicle LAG-330-MT (Kia Rio)',
-      reason: 'Brake pads worn past threshold. Availability blocked.',
-      timestamp: 'Yesterday @ 03:22:15 PM',
-      type: 'maintenance',
-    },
-    {
-      id: 'aud-003',
-      actor: 'Marcus Vance (Admin)',
-      action: 'RATE_OVERRIDE_CREATED',
-      entity: 'Override: Diplomatic Prado Weekend Peak',
-      reason: 'Peak holiday demand rate adjustment',
-      timestamp: 'Oct 19, 2026 @ 11:05:40 AM',
-      type: 'pricing',
-    },
-    {
-      id: 'aud-004',
-      actor: 'System Sentinel',
-      action: 'CONCURRENCY_COLLISION_PREVENTED',
-      entity: 'Vehicle LAG-802-AB (Toyota RAV4)',
-      reason: 'Rejected concurrent conflicting interval attempt during checkout race',
-      timestamp: 'Oct 18, 2026 @ 02:40:19 PM',
-      type: 'system',
-    },
-    {
-      id: 'aud-005',
-      actor: 'Marcus Vance (Admin)',
-      action: 'RETURN_INSPECTION_RECORDED',
-      entity: 'Booking #DF-2026-7814',
-      reason: 'Return odometer logged (18,420 km). 0 defects.',
-      timestamp: 'Sep 15, 2026 @ 10:00:00 AM',
-      type: 'inspection',
-    },
-  ];
-
-  const filtered = auditEntries.filter((e) => {
+  const filtered = auditLogs.filter((e) => {
     if (filterEntity !== 'all' && e.type !== filterEntity) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return (
+        e.action.toLowerCase().includes(q) ||
+        e.entity.toLowerCase().includes(q) ||
+        e.actor.toLowerCase().includes(q) ||
+        e.reason.toLowerCase().includes(q)
+      );
+    }
     return true;
   });
 
@@ -100,7 +64,11 @@ export function AuditTrailPage() {
           >
             <option value="all">All Audit Entities</option>
             <option value="booking">Bookings</option>
+            <option value="vehicle">Vehicles</option>
+            <option value="customer">Customers</option>
             <option value="maintenance">Maintenance</option>
+            <option value="team">Team & Roles</option>
+            <option value="inspection">Inspections</option>
             <option value="pricing">Pricing Rules</option>
             <option value="system">System Sentinel</option>
           </select>

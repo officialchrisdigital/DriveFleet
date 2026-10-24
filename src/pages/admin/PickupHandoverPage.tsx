@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { formatCurrency, formatKilometers } from '@/lib/formatters';
 import {
@@ -10,6 +11,7 @@ import {
 export function PickupHandoverPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { bookings, vehicles, updateBooking, updateVehicle } = useOperations();
 
   const booking = bookings.find((b) => b.id === bookingId || b.reference === bookingId);
@@ -58,9 +60,15 @@ export function PickupHandoverPage() {
 
     setIsSubmitting(true);
 
-    // Update booking status to active
+    const officerName = user ? `${user.firstName} ${user.lastName} (${user.role.toUpperCase()})` : 'Station Officer';
+
+    // Update booking status to active with authenticated officer attribution
     updateBooking(booking.id, {
       status: 'active',
+      latestVersion: {
+        changeReason: `Vehicle and keys handed over by ${officerName}. Inspection confirmed pristine.`,
+        actorId: officerName,
+      } as any,
     });
 
     // Update vehicle odometer

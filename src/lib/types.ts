@@ -60,6 +60,7 @@ export interface CrmCustomer {
   renterDetails: RenterDetails;
   linkedUserId?: string;
   createdBy: string;
+  createdByName?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -102,6 +103,8 @@ export interface Vehicle {
   archived: boolean;
   serviceThresholds: ServiceThresholds;
   images?: string[];
+  createdBy?: string;
+  createdByName?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -186,6 +189,7 @@ export interface Booking {
   status: BookingStatus;
   sourceChannel: 'customer' | 'staff';
   createdBy?: string;
+  createdByName?: string;
   idempotencyKey?: string;
   currentVersion: number;
   quote?: QuoteCalculation;
@@ -239,6 +243,7 @@ export interface MaintenanceTask {
   notes?: string;
   blocksAvailability: boolean;
   createdBy: string;
+  createdByName?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -340,4 +345,14 @@ export interface OrgSettings {
   turnaroundBufferMinutes: number; // default 0
   updatedAt?: string;
   updatedBy?: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actor: string;
+  action: string;
+  entity: string;
+  reason: string;
+  timestamp: string;
+  type: 'booking' | 'vehicle' | 'customer' | 'maintenance' | 'pricing' | 'team' | 'inspection' | 'system';
 }

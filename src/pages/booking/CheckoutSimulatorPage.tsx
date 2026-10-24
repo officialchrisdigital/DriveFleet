@@ -99,6 +99,8 @@ export function CheckoutSimulatorPage() {
           returnAt,
           status: 'confirmed',
           sourceChannel: 'customer',
+          createdBy: user?.id || user?.email || targetEmail,
+          createdByName: user ? `${user.firstName} ${user.lastName}` : 'Direct Customer',
           quote: {
             billedPeriods: quote.billedPeriods || 1,
             lineItems: quote.lineItems || [],

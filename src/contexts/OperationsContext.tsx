@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
   Vehicle, Booking, CrmCustomer, MaintenanceTask,
-  VehicleOperationalState, BookingStatus
+  VehicleOperationalState, BookingStatus, AuditLogEntry
 } from '@/lib/types';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
 import {
@@ -84,8 +84,12 @@ export interface OperationsContextType {
   addPricingOverride: (override: Omit<PricingOverrideItem, 'id'>) => void;
 
   // Team Actions
-  addTeamMember: (member: Omit<TeamMemberItem, 'id' | 'createdAt'>) => void;
+  addTeamMember: (member: Omit<TeamMemberItem, 'id' | 'createdAt'> & { password?: string }) => void;
   toggleTeamMember: (id: string) => void;
+
+  // Audit Actions
+  auditLogs: AuditLogEntry[];
+  logAuditEvent: (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => void;
 
   // Conflict Checking
   checkAvailability: (
@@ -105,7 +109,56 @@ const STORAGE_KEYS = {
   PRICING: 'drivefleet_pricing_overrides',
   TEAM: 'drivefleet_team_members',
   REGISTERED_USERS: 'drivefleet_registered_users',
+  AUDIT: 'drivefleet_audit_logs',
 };
+
+const SEED_AUDIT_LOGS: AuditLogEntry[] = [
+  {
+    id: 'aud-001',
+    actor: 'Marcus Vance (ADMIN)',
+    action: 'BOOKING_COMMITTED',
+    entity: 'Booking #DF-2026-9812',
+    reason: 'Customer completed simulated atomic checkout',
+    timestamp: 'Today @ 10:14:02 AM',
+    type: 'booking',
+  },
+  {
+    id: 'aud-002',
+    actor: 'Amara Kalu (STAFF)',
+    action: 'MAINTENANCE_QUARANTINE_LOCKED',
+    entity: 'Vehicle LAG-330-MT (Kia Rio)',
+    reason: 'Brake pads worn past threshold. Availability blocked.',
+    timestamp: 'Yesterday @ 03:22:15 PM',
+    type: 'maintenance',
+  },
+  {
+    id: 'aud-003',
+    actor: 'Marcus Vance (ADMIN)',
+    action: 'RATE_OVERRIDE_CREATED',
+    entity: 'Override: Diplomatic Prado Weekend Peak',
+    reason: 'Peak holiday demand rate adjustment',
+    timestamp: 'Oct 19, 2026 @ 11:05:40 AM',
+    type: 'pricing',
+  },
+  {
+    id: 'aud-004',
+    actor: 'System Sentinel',
+    action: 'CONCURRENCY_COLLISION_PREVENTED',
+    entity: 'Vehicle LAG-802-AB (Toyota RAV4)',
+    reason: 'Rejected concurrent conflicting interval attempt during checkout race',
+    timestamp: 'Oct 18, 2026 @ 02:40:19 PM',
+    type: 'system',
+  },
+  {
+    id: 'aud-005',
+    actor: 'Marcus Vance (ADMIN)',
+    action: 'RETURN_INSPECTION_RECORDED',
+    entity: 'Booking #DF-2026-7814',
+    reason: 'Return odometer logged (18,420 km). 0 defects.',
+    timestamp: 'Sep 15, 2026 @ 10:00:00 AM',
+    type: 'inspection',
+  },
+];
 
 const SEED_CUSTOMERS: CrmCustomer[] = [
   {
@@ -620,6 +673,15 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
     return initialTeam;
   });
 
+  // 8. Audit Logs
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.AUDIT);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return SEED_AUDIT_LOGS;
+  });
+
   // Persist State to LocalStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.VEHICLES, JSON.stringify(vehicles));
@@ -648,6 +710,22 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.TEAM, JSON.stringify(teamMembers));
   }, [teamMembers]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.AUDIT, JSON.stringify(auditLogs));
+  }, [auditLogs]);
+
+  const logAuditEvent = (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const dateStr = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const newEntry: AuditLogEntry = {
+      ...entry,
+      id: `aud-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: `${timeStr} (${dateStr})`,
+    };
+    setAuditLogs((prev) => [newEntry, ...prev]);
+  };
 
   // AUTO-SYNC: Watch profile updates, user registrations, and storage events to keep CRM customers and Team Members in sync
   useEffect(() => {
@@ -921,6 +999,7 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
 
   // Vehicle Methods
   const addVehicle = (vehicleData: Partial<Vehicle>): Vehicle => {
+    const rawPlate = vehicleData.plate?.toUpperCase() || 'LAG-100-DF';
     const newVehicle: Vehicle = {
       id: vehicleData.id || `veh-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       branchId: vehicleData.branchId || 'b0000000-0000-0000-0000-000000000001',
@@ -935,7 +1014,8 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       make: vehicleData.make || 'Toyota',
       model: vehicleData.model || 'Corolla',
       year: vehicleData.year || 2024,
-      plate: vehicleData.plate?.toUpperCase() || 'LAG-100-DF',
+      plate: rawPlate,
+      plateNormalized: rawPlate.replace(/[^A-Z0-9]/g, ''),
       category: vehicleData.category || 'sedan',
       seats: vehicleData.seats || 5,
       transmission: vehicleData.transmission || 'automatic',
@@ -949,17 +1029,43 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       images: vehicleData.images?.length
         ? vehicleData.images
         : ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800'],
+      createdBy: vehicleData.createdBy || 'operations',
+      createdByName: vehicleData.createdByName || 'Fleet Operations',
       createdAt: new Date().toISOString(),
     };
 
     setVehicles((prev) => [newVehicle, ...prev]);
+
+    logAuditEvent({
+      actor: newVehicle.createdByName || 'Fleet Manager',
+      action: 'VEHICLE_REGISTERED',
+      entity: `${newVehicle.make} ${newVehicle.model} [${newVehicle.plate}]`,
+      reason: `New ${newVehicle.category.toUpperCase()} unit registered at ${newVehicle.branch?.name || 'Hub'}`,
+      type: 'vehicle',
+    });
+
     return newVehicle;
   };
 
   const updateVehicle = (id: string, updates: Partial<Vehicle>) => {
+    let vehDesc = id;
     setVehicles((prev) =>
-      prev.map((v) => (v.id === id ? { ...v, ...updates, updatedAt: new Date().toISOString() } : v))
+      prev.map((v) => {
+        if (v.id === id) {
+          vehDesc = `${v.make} ${v.model} [${v.plate}]`;
+          return { ...v, ...updates, updatedAt: new Date().toISOString() };
+        }
+        return v;
+      })
     );
+
+    logAuditEvent({
+      actor: 'Fleet Manager',
+      action: 'VEHICLE_UPDATED',
+      entity: `Vehicle ${vehDesc}`,
+      reason: updates.operationalState ? `Operational state set to ${updates.operationalState}` : 'Vehicle telemetry and specifications amended',
+      type: 'vehicle',
+    });
   };
 
   const deleteVehicle = (id: string) => {
@@ -980,7 +1086,8 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       rentalsCount: 0,
       notesCount: customerData.notes?.length || 0,
       notes: customerData.notes || [],
-      createdBy: 'staff',
+      createdBy: customerData.createdBy || 'staff',
+      createdByName: customerData.createdByName || 'Duty Officer',
       createdAt: new Date().toISOString(),
       renterDetails: customerData.renterDetails || {
         licenseNumber: 'FRSC-PENDING',
@@ -989,6 +1096,36 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
     };
 
     setCustomers((prev) => [newCustomer, ...prev]);
+
+    // Provision into authenticated accounts registry so customer can log in
+    if (newCustomer.email) {
+      try {
+        const cleanEmail = newCustomer.email.toLowerCase();
+        const registeredStr = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
+        const registered = registeredStr ? JSON.parse(registeredStr) : [];
+        if (!registered.some((r: any) => r.user?.email?.toLowerCase() === cleanEmail)) {
+          registered.push({
+            user: {
+              id: newCustomer.id,
+              email: cleanEmail,
+              role: 'customer',
+              firstName: newCustomer.firstName,
+              lastName: newCustomer.lastName,
+              phone: newCustomer.phone,
+              avatarUrl: newCustomer.avatarUrl,
+              active: true,
+              createdAt: newCustomer.createdAt,
+            },
+            password: 'Customer@DriveFleet2026!',
+            renterDetails: newCustomer.renterDetails,
+          });
+          localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(registered));
+          window.dispatchEvent(new CustomEvent('drivefleet_profile_sync'));
+        }
+      } catch (err) {
+        console.warn('Customer auth registration error:', err);
+      }
+    }
 
     // If admin/staff uploaded an avatar for this customer, sync to overrides & registered accounts
     if (newCustomer.avatarUrl && newCustomer.email) {
@@ -1001,6 +1138,14 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('drivefleet_user_overrides', JSON.stringify(overrides));
       } catch {}
     }
+
+    logAuditEvent({
+      actor: newCustomer.createdByName || 'Staff Officer',
+      action: 'CUSTOMER_CRM_PROVISIONED',
+      entity: `Customer ${newCustomer.firstName} ${newCustomer.lastName}`,
+      reason: `Client account created with verified license ${newCustomer.renterDetails?.licenseNumber || 'N/A'}`,
+      type: 'customer',
+    });
 
     return newCustomer;
   };
@@ -1060,6 +1205,14 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
         console.warn('Customer avatar sync error:', e);
       }
     }
+
+    logAuditEvent({
+      actor: 'CRM Officer',
+      action: 'CUSTOMER_CRM_UPDATED',
+      entity: `Customer ${targetEmail || id}`,
+      reason: updates.status ? `Account standing updated to ${updates.status}` : 'Customer dossier records amended',
+      type: 'customer',
+    });
   };
 
   // Booking Methods
@@ -1077,6 +1230,8 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       status: bookingData.status || 'confirmed',
       sourceChannel: bookingData.sourceChannel || 'staff',
       currentVersion: 1,
+      createdBy: bookingData.createdBy || 'customer',
+      createdByName: bookingData.createdByName || (bookingData.sourceChannel === 'customer' ? 'Customer' : 'Operations Officer'),
       createdAt: bookingData.createdAt || new Date().toISOString(),
       quote: bookingData.quote || {
         billedPeriods: 3,
@@ -1125,6 +1280,14 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       addUserBooking(custEmail, customerBookingItem);
     }
 
+    logAuditEvent({
+      actor: newBooking.createdByName || 'System Dispatch',
+      action: 'BOOKING_COMMITTED',
+      entity: `Booking #${newBooking.reference}`,
+      reason: `${newBooking.sourceChannel.toUpperCase()} channel reservation for ${newBooking.quote?.billedPeriods || 1} day(s)`,
+      type: 'booking',
+    });
+
     return newBooking;
   };
 
@@ -1148,6 +1311,14 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
     if (updatedRef && updatedStatus) {
       updateCustomerBookingStatus(updatedRef, updatedStatus);
     }
+
+    logAuditEvent({
+      actor: updates.latestVersion?.actorId || 'Operations Officer',
+      action: updates.status ? `BOOKING_STATUS_${updates.status.toUpperCase()}` : 'BOOKING_AMENDED',
+      entity: `Booking #${updatedRef || id}`,
+      reason: updates.latestVersion?.changeReason || (updates.status ? `Reservation marked as ${updates.status}` : 'Terms modified'),
+      type: 'booking',
+    });
   };
 
   const cancelBooking = (id: string, reason?: string) => {
@@ -1173,6 +1344,14 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
     if (cancelledRef) {
       updateCustomerBookingStatus(cancelledRef, 'cancelled', reason || 'Cancelled by Fleet Operations');
     }
+
+    logAuditEvent({
+      actor: 'Fleet Operations',
+      action: 'BOOKING_CANCELLED',
+      entity: `Booking #${cancelledRef || id}`,
+      reason: reason || 'Reservation cancelled and deposit release triggered',
+      type: 'booking',
+    });
   };
 
   // Maintenance Methods
@@ -1191,7 +1370,8 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       estimatedCostMinor: taskData.estimatedCostMinor || 5000000,
       blocksAvailability: taskData.blocksAvailability ?? true,
       notes: taskData.notes || '',
-      createdBy: 'operations',
+      createdBy: taskData.createdBy || 'operations',
+      createdByName: taskData.createdByName || 'Fleet Lead',
       createdAt: new Date().toISOString(),
     };
 
@@ -1201,6 +1381,14 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
     if (newTask.blocksAvailability) {
       updateVehicle(newTask.vehicleId, { operationalState: 'in_maintenance' });
     }
+
+    logAuditEvent({
+      actor: newTask.createdByName || 'Fleet Lead',
+      action: 'MAINTENANCE_WORK_ORDER_LOGGED',
+      entity: `Vehicle #${newTask.vehicleId} - ${newTask.taskType}`,
+      reason: newTask.reason || 'Preventative fleet quarantine order committed',
+      type: 'maintenance',
+    });
 
     return newTask;
   };
@@ -1227,6 +1415,14 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
     if (task.blocksAvailability) {
       updateVehicle(task.vehicleId, { operationalState: 'ready' });
     }
+
+    logAuditEvent({
+      actor: 'Master Technician',
+      action: 'MAINTENANCE_COMPLETED',
+      entity: `Work Order #${id} - ${task.taskType}`,
+      reason: 'Maintenance inspection completed. Vehicle signed off and restored to ready fleet.',
+      type: 'maintenance',
+    });
   };
 
   // Promo Methods
@@ -1250,7 +1446,7 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
   };
 
   // Team Methods
-  const addTeamMember = (member: Omit<TeamMemberItem, 'id' | 'createdAt'>) => {
+  const addTeamMember = (member: Omit<TeamMemberItem, 'id' | 'createdAt'> & { password?: string }) => {
     const item: TeamMemberItem = {
       ...member,
       id: `tm-${Date.now()}`,
@@ -1267,6 +1463,44 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('drivefleet_user_overrides', JSON.stringify(overrides));
       } catch {}
     }
+
+    // Register team member in authenticated users registry so they can log into the staff/admin portal
+    try {
+      const cleanEmail = item.email.toLowerCase();
+      const registeredStr = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
+      const registered = registeredStr ? JSON.parse(registeredStr) : [];
+      if (!registered.some((r: any) => r.user?.email?.toLowerCase() === cleanEmail)) {
+        registered.push({
+          user: {
+            id: item.id,
+            email: cleanEmail,
+            role: item.role,
+            firstName: item.firstName,
+            lastName: item.lastName,
+            phone: item.phone,
+            avatarUrl: item.avatarUrl,
+            active: true,
+            preferredBranchId: item.branch.includes('Abuja')
+              ? 'b0000000-0000-0000-0000-000000000002'
+              : 'b0000000-0000-0000-0000-000000000001',
+            createdAt: item.createdAt,
+          },
+          password: member.password || (item.role === 'admin' ? 'Admin@DriveFleet2026!' : 'Staff@DriveFleet2026!'),
+        });
+        localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(registered));
+        window.dispatchEvent(new CustomEvent('drivefleet_profile_sync'));
+      }
+    } catch (err) {
+      console.warn('Team auth registry sync error:', err);
+    }
+
+    logAuditEvent({
+      actor: 'System Administrator',
+      action: 'TEAM_MEMBER_PROVISIONED',
+      entity: `${item.firstName} ${item.lastName} (${item.role.toUpperCase()})`,
+      reason: `Provisioned with role access at ${item.branch}`,
+      type: 'team',
+    });
   };
 
   const toggleTeamMember = (id: string) => {
@@ -1285,6 +1519,8 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
         promos,
         pricingOverrides,
         teamMembers,
+        auditLogs,
+        logAuditEvent,
         addVehicle,
         updateVehicle,
         deleteVehicle,

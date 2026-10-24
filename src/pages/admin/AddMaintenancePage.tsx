@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { Priority } from '@/lib/types';
 import {
@@ -8,7 +9,8 @@ import {
 } from 'lucide-react';
 
 export function AddMaintenancePage() {
-  const { vehicles, addMaintenanceTask } = useOperations();
+  const { vehicles, teamMembers, addMaintenanceTask } = useOperations();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -48,6 +50,8 @@ export function AddMaintenancePage() {
       estimatedCostMinor: estimatedCostNaira * 100,
       blocksAvailability,
       notes: notes.trim(),
+      createdBy: user?.id || user?.email || 'operations',
+      createdByName: user ? `${user.firstName} ${user.lastName} (${user.role.toUpperCase()})` : 'Fleet Operations',
     });
 
     navigate(`/admin/maintenance/${newTask.id}`);
@@ -134,16 +138,29 @@ export function AddMaintenancePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Assigned Lead Technician / Workshop
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Assigned Lead Technician / Station Staff
+                </label>
+                {teamMembers.length > 0 && (
+                  <span className="text-[10px] text-blue-600 font-semibold">
+                    Quick-pick from active team roster
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 value={assigneeName}
                 onChange={(e) => setAssigneeName(e.target.value)}
                 placeholder="e.g. Babatunde Ade (Master Tech)"
+                list="team-members-list"
                 className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <datalist id="team-members-list">
+                {teamMembers.map((tm) => (
+                  <option key={tm.id} value={`${tm.firstName} ${tm.lastName} (${tm.role.toUpperCase()} - ${tm.branch})`} />
+                ))}
+              </datalist>
             </div>
 
             <div>
