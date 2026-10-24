@@ -33,7 +33,13 @@ export function CustomerDetailPage() {
     );
   }
 
-  const customerBookings = bookings.filter((b) => b.customerId === customer.id);
+  const customerBookings = bookings.filter(
+    (b) =>
+      b.customerId === customer.id ||
+      b.customerId === customer.email ||
+      (customer.email && b.customerId === customer.email.toLowerCase()) ||
+      (customer.id === 'c-adeyemi' && (b.customerId === 'chukwudi@drivefleet.demo' || b.customerId === 'c0000000-0000-0000-0000-000000000001'))
+  );
 
   const handleAddNote = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useOperations } from '@/contexts/OperationsContext';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
 import { formatCurrency } from '@/lib/formatters';
 import {
@@ -9,7 +10,14 @@ import {
 
 export function BookingConfirmationPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
-  const vehicle = DEMO_VEHICLES[0]; // Toyota RAV4
+  const { bookings, vehicles } = useOperations();
+
+  const currentBooking = bookings.find((b) => b.reference === bookingId || b.id === bookingId);
+  const matchedVehicle = currentBooking
+    ? vehicles.find((v) => v.id === currentBooking.vehicleId)
+    : DEMO_VEHICLES[0];
+  const vehicle = matchedVehicle || DEMO_VEHICLES[0];
+  const displayRef = bookingId || currentBooking?.reference || 'DF-2026-9812';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -38,7 +46,7 @@ export function BookingConfirmationPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center sm:text-right shrink-0">
           <div className="text-[10px] uppercase font-bold text-blue-600 tracking-wider">Master Voucher ID</div>
           <div className="text-2xl font-black font-mono text-slate-900 mt-0.5 tracking-tight">
-            #DF-2026-9812
+            #{displayRef}
           </div>
           <div className="text-[10px] text-slate-500 mt-1 flex items-center justify-center sm:justify-end gap-1">
             <ShieldCheck className="w-3 h-3 text-emerald-600" />
@@ -58,7 +66,7 @@ export function BookingConfirmationPage() {
             <span>Print Summary</span>
           </button>
           <button
-            onClick={() => alert('Demo PDF voucher downloaded (DF-2026-9812.pdf)')}
+            onClick={() => alert(`Official PDF voucher downloaded (${displayRef}.pdf)`)}
             className="bg-white hover:bg-slate-50 border border-slate-300 font-semibold px-4 py-2 rounded-xl flex items-center gap-2 text-slate-700 shadow-sm transition-colors"
           >
             <Download className="w-4 h-4 text-slate-500" />
@@ -170,7 +178,7 @@ export function BookingConfirmationPage() {
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                 <div className="font-bold text-slate-900 mb-1">3. QR Code & Voucher</div>
                 <p className="text-slate-500 text-[11px]">
-                  Voucher #DF-2026-9812 on phone or printout.
+                  Voucher #{displayRef} on phone or printout.
                 </p>
                 <span className="text-[10px] font-bold text-blue-600 mt-2 block">✓ Active in Wallet</span>
               </div>

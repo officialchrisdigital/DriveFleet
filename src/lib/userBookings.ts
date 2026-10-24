@@ -105,6 +105,9 @@ export function saveUserBookings(email: string, bookings: CustomerBooking[]): vo
   const normalizedEmail = email.toLowerCase().trim();
   const storageKey = `${STORAGE_PREFIX}${normalizedEmail}`;
   localStorage.setItem(storageKey, JSON.stringify(bookings));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('drivefleet_booking_sync', { detail: { email: normalizedEmail } }));
+  }
 }
 
 export function addUserBooking(email: string, booking: CustomerBooking): CustomerBooking[] {
@@ -113,6 +116,51 @@ export function addUserBooking(email: string, booking: CustomerBooking): Custome
   const updated = [booking, ...existing.filter((b) => b.id !== booking.id)];
   saveUserBookings(email, updated);
   return updated;
+}
+
+export function toCustomerBookingStatus(status: string): CustomerBooking['status'] {
+  if (status === 'active') return 'active';
+  if (status === 'completed') return 'completed';
+  if (status === 'cancelled') return 'cancelled';
+  return 'confirmed';
+}
+
+export function updateCustomerBookingStatus(
+  bookingId: string,
+  status: string,
+  cancelReason?: string
+): void {
+  if (typeof window === 'undefined') return;
+  const normalizedStatus = toCustomerBookingStatus(status);
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(STORAGE_PREFIX)) {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          const list: CustomerBooking[] = JSON.parse(stored);
+          let modified = false;
+          const updatedList = list.map((item) => {
+            if (item.id === bookingId) {
+              modified = true;
+              return {
+                ...item,
+                status: normalizedStatus,
+                ...(cancelReason ? { cancelReason, cancelledAt: new Date().toISOString() } : {}),
+              };
+            }
+            return item;
+          });
+          if (modified) {
+            localStorage.setItem(key, JSON.stringify(updatedList));
+            window.dispatchEvent(new CustomEvent('drivefleet_booking_sync'));
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to update customer booking status in storage:', err);
+  }
 }
 
 export function cancelUserBooking(

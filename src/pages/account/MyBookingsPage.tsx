@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOperations } from '@/contexts/OperationsContext';
 import {
   getUserBookings,
   cancelUserBooking,
   CustomerBooking,
+  toCustomerBookingStatus,
 } from '@/lib/userBookings';
 import { formatCurrency } from '@/lib/formatters';
 import {
@@ -14,6 +16,7 @@ import {
 
 export function MyBookingsPage() {
   const { user } = useAuth();
+  const { bookings: opBookings, vehicles, customers, cancelBooking } = useOperations();
   const [bookings, setBookings] = useState<CustomerBooking[]>([]);
   const [filterTab, setFilterTab] = useState<'all' | 'upcoming' | 'completed' | 'cancelled'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,11 +30,60 @@ export function MyBookingsPage() {
   const [isProcessingCancel, setIsProcessingCancel] = useState(false);
 
   useEffect(() => {
-    if (user?.email) {
-      const userList = getUserBookings(user.email);
-      setBookings(userList);
+    if (!user?.email) return;
+
+    const userList = getUserBookings(user.email);
+
+    // Find matching bookings in Operations context
+    const matchingCust = customers.find(
+      (c) =>
+        c.email?.toLowerCase() === user.email.toLowerCase() ||
+        c.id === user.id ||
+        (user.email === 'chukwudi@drivefleet.demo' && c.id === 'c-adeyemi')
+    );
+    const targetCustId =
+      matchingCust?.id || (user.email === 'chukwudi@drivefleet.demo' ? 'c-adeyemi' : user.id);
+
+    const relevantOpBookings = opBookings.filter(
+      (b) =>
+        b.customerId === targetCustId ||
+        b.customerId === user.id ||
+        b.customerId === user.email
+    );
+
+    // Merge operations bookings into user bookings list
+    const combined: CustomerBooking[] = [...userList];
+
+    for (const ob of relevantOpBookings) {
+      const existingIdx = combined.findIndex((cb) => cb.id === ob.reference || cb.id === ob.id);
+      const veh = vehicles.find((v) => v.id === ob.vehicleId);
+
+      if (existingIdx === -1) {
+        combined.push({
+          id: ob.reference,
+          vehicle: veh ? `${veh.make} ${veh.model} (${veh.year})` : 'Assigned Fleet Vehicle',
+          plate: veh?.plate || 'TBD',
+          category: veh?.category || 'sedan',
+          status: toCustomerBookingStatus(ob.status),
+          dates: `${ob.quote?.billedPeriods || 3} Days (${ob.pickupAt.split('T')[0]} → ${ob.returnAt.split('T')[0]})`,
+          pickupAt: ob.pickupAt,
+          returnAt: ob.returnAt,
+          hub: veh?.branch?.name || (ob.branchId.includes('2') ? 'Abuja Central Terminal' : 'Lagos Ikeja Main Hub'),
+          amountMinor: ob.quote?.totalMinor || 15000000,
+          image: veh?.images?.[0] || 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=600',
+        });
+      } else {
+        // Live sync status and updates from Operations
+        combined[existingIdx] = {
+          ...combined[existingIdx],
+          status: toCustomerBookingStatus(ob.status),
+          cancelReason: ob.latestVersion?.changeReason || combined[existingIdx].cancelReason,
+        };
+      }
     }
-  }, [user?.email]);
+
+    setBookings(combined);
+  }, [user?.email, user?.id, opBookings, vehicles, customers]);
 
   const upcomingCount = bookings.filter((b) => b.status === 'confirmed').length;
   const completedCount = bookings.filter((b) => b.status === 'completed').length;
@@ -68,6 +120,7 @@ export function MyBookingsPage() {
       : cancelReason;
 
     const result = cancelUserBooking(user.email, selectedBookingForCancel.id, fullReason);
+    cancelBooking(selectedBookingForCancel.id, fullReason);
 
     setIsProcessingCancel(false);
 

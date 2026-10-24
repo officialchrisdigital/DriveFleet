@@ -4,6 +4,13 @@ import {
   VehicleOperationalState, BookingStatus
 } from '@/lib/types';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
+import {
+  CustomerBooking,
+  CHUKWUDI_INITIAL_BOOKINGS,
+  updateCustomerBookingStatus,
+  addUserBooking,
+  toCustomerBookingStatus,
+} from '@/lib/userBookings';
 
 export interface PromoItem {
   code: string;
@@ -106,7 +113,7 @@ const SEED_CUSTOMERS: CrmCustomer[] = [
     firstName: 'Chukwudi',
     lastName: 'Adeyemi',
     company: 'Enterprise Dynamics Lagos',
-    email: 'c.adeyemi@enterprise-lagos.ng',
+    email: 'chukwudi@drivefleet.demo',
     phone: '+234 803 555 0192',
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
     status: 'active',
@@ -186,8 +193,8 @@ const SEED_BOOKINGS: Booking[] = [
     customerId: 'c-adeyemi',
     vehicleId: 'rav4-802',
     branchId: 'b0000000-0000-0000-0000-000000000001',
-    pickupAt: '2026-10-25T09:00:00Z',
-    returnAt: '2026-10-28T18:00:00Z',
+    pickupAt: '2026-10-23T10:00:00Z',
+    returnAt: '2026-10-26T10:00:00Z',
     status: 'confirmed',
     sourceChannel: 'customer',
     currentVersion: 1,
@@ -195,16 +202,100 @@ const SEED_BOOKINGS: Booking[] = [
     quote: {
       billedPeriods: 3,
       lineItems: [],
-      subtotalMinor: 13500000,
+      subtotalMinor: 12960000,
       durationTier: null,
       durationDiscountPercent: 0,
       durationDiscountMinor: 0,
-      afterDurationMinor: 13500000,
+      afterDurationMinor: 12960000,
       promoDiscountMinor: 0,
-      afterPromoMinor: 13500000,
+      afterPromoMinor: 12960000,
       feesMinor: 0,
       depositMinor: 5000000,
-      totalMinor: 18500000,
+      totalMinor: 12960000,
+      currency: 'NGN',
+    },
+  },
+  {
+    id: 'b-7814',
+    reference: 'DF-2026-7814',
+    customerId: 'c-adeyemi',
+    vehicleId: 'camry-104',
+    branchId: 'b0000000-0000-0000-0000-000000000001',
+    pickupAt: '2026-09-12T10:00:00Z',
+    returnAt: '2026-09-15T10:00:00Z',
+    status: 'completed',
+    sourceChannel: 'customer',
+    currentVersion: 1,
+    createdAt: '2026-09-10T11:00:00Z',
+    quote: {
+      billedPeriods: 3,
+      lineItems: [],
+      subtotalMinor: 9450000,
+      durationTier: null,
+      durationDiscountPercent: 0,
+      durationDiscountMinor: 0,
+      afterDurationMinor: 9450000,
+      promoDiscountMinor: 0,
+      afterPromoMinor: 9450000,
+      feesMinor: 0,
+      depositMinor: 5000000,
+      totalMinor: 9450000,
+      currency: 'NGN',
+    },
+  },
+  {
+    id: 'b-6102',
+    reference: 'DF-2026-6102',
+    customerId: 'c-adeyemi',
+    vehicleId: 'c300-129',
+    branchId: 'b0000000-0000-0000-0000-000000000001',
+    pickupAt: '2026-07-04T10:00:00Z',
+    returnAt: '2026-07-06T10:00:00Z',
+    status: 'completed',
+    sourceChannel: 'customer',
+    currentVersion: 1,
+    createdAt: '2026-07-01T09:15:00Z',
+    quote: {
+      billedPeriods: 2,
+      lineItems: [],
+      subtotalMinor: 17100000,
+      durationTier: null,
+      durationDiscountPercent: 0,
+      durationDiscountMinor: 0,
+      afterDurationMinor: 17100000,
+      promoDiscountMinor: 0,
+      afterPromoMinor: 17100000,
+      feesMinor: 0,
+      depositMinor: 10000000,
+      totalMinor: 17100000,
+      currency: 'NGN',
+    },
+  },
+  {
+    id: 'b-5520',
+    reference: 'DF-2026-5520',
+    customerId: 'c-adeyemi',
+    vehicleId: 'tucson-218',
+    branchId: 'b0000000-0000-0000-0000-000000000002',
+    pickupAt: '2026-05-18T10:00:00Z',
+    returnAt: '2026-05-21T10:00:00Z',
+    status: 'cancelled',
+    sourceChannel: 'customer',
+    currentVersion: 1,
+    createdAt: '2026-05-12T14:00:00Z',
+    quote: {
+      billedPeriods: 3,
+      lineItems: [],
+      subtotalMinor: 14500000,
+      durationTier: null,
+      durationDiscountPercent: 0,
+      durationDiscountMinor: 0,
+      afterDurationMinor: 14500000,
+      promoDiscountMinor: 0,
+      afterPromoMinor: 14500000,
+      feesMinor: 0,
+      depositMinor: 5000000,
+      totalMinor: 14500000,
       currency: 'NGN',
     },
   },
@@ -212,7 +303,7 @@ const SEED_BOOKINGS: Booking[] = [
     id: 'b-3829',
     reference: 'DF-2026-3829',
     customerId: 'c-okonkwo',
-    vehicleId: 'camry-482',
+    vehicleId: 'camry-104',
     branchId: 'b0000000-0000-0000-0000-000000000001',
     pickupAt: '2026-10-22T10:00:00Z',
     returnAt: '2026-10-24T10:00:00Z',
@@ -240,7 +331,7 @@ const SEED_BOOKINGS: Booking[] = [
     id: 'b-1044',
     reference: 'DF-2026-1044',
     customerId: 'n-eze',
-    vehicleId: 'crv-501',
+    vehicleId: 'prado-401',
     branchId: 'b0000000-0000-0000-0000-000000000002',
     pickupAt: '2026-10-26T08:00:00Z',
     returnAt: '2026-10-29T17:00:00Z',
@@ -268,7 +359,7 @@ const SEED_BOOKINGS: Booking[] = [
     id: 'b-7731',
     reference: 'DF-2026-7731',
     customerId: 't-mansoor',
-    vehicleId: 'c300-992',
+    vehicleId: 'c300-129',
     branchId: 'b0000000-0000-0000-0000-000000000001',
     pickupAt: '2026-10-15T09:00:00Z',
     returnAt: '2026-10-18T18:00:00Z',
@@ -460,11 +551,20 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
 
   // 3. Bookings
   const [bookings, setBookings] = useState<Booking[]>(() => {
+    let list = SEED_BOOKINGS;
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.BOOKINGS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Merge saved bookings with SEED_BOOKINGS so none of the initial seed bookings are lost
+          const seen = new Set(parsed.map((b: Booking) => b.reference || b.id));
+          const missingSeeds = SEED_BOOKINGS.filter((sb) => !seen.has(sb.reference) && !seen.has(sb.id));
+          list = [...parsed, ...missingSeeds];
+        }
+      }
     } catch {}
-    return SEED_BOOKINGS;
+    return list;
   });
 
   // 4. Maintenance
@@ -628,14 +728,135 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    syncAllProfiles();
-    window.addEventListener('storage', syncAllProfiles);
-    window.addEventListener('drivefleet_profile_sync', syncAllProfiles as EventListener);
-    return () => {
-      window.removeEventListener('storage', syncAllProfiles);
-      window.removeEventListener('drivefleet_profile_sync', syncAllProfiles as EventListener);
+    const syncCustomerBookings = () => {
+      try {
+        // Ensure Chukwudi's default bookings exist in storage if not yet set
+        const chukwudiKey = 'drivefleet_user_bookings_chukwudi@drivefleet.demo';
+        if (!localStorage.getItem(chukwudiKey)) {
+          localStorage.setItem(chukwudiKey, JSON.stringify(CHUKWUDI_INITIAL_BOOKINGS));
+        }
+
+        // Iterate all user booking keys in localStorage
+        const userBookingKeys: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('drivefleet_user_bookings_')) {
+            userBookingKeys.push(k);
+          }
+        }
+
+        setBookings((prevBookings) => {
+          let updated = [...prevBookings];
+          let changed = false;
+
+          for (const key of userBookingKeys) {
+            const email = key.replace('drivefleet_user_bookings_', '').toLowerCase();
+            const stored = localStorage.getItem(key);
+            if (!stored) continue;
+
+            let customerBookings: CustomerBooking[] = [];
+            try {
+              customerBookings = JSON.parse(stored);
+            } catch {
+              continue;
+            }
+
+            if (!Array.isArray(customerBookings)) continue;
+
+            // Match customer
+            const customer = customers.find(
+              (c) =>
+                c.email?.toLowerCase() === email ||
+                (email === 'chukwudi@drivefleet.demo' && c.id === 'c-adeyemi')
+            );
+            const customerId = customer?.id || (email === 'chukwudi@drivefleet.demo' ? 'c-adeyemi' : `crm-${email}`);
+
+            for (const cb of customerBookings) {
+              const existingIdx = updated.findIndex(
+                (b) => b.reference === cb.id || b.id === cb.id || b.id === `b-${cb.id}`
+              );
+
+              if (existingIdx === -1) {
+                // Determine matching vehicle
+                const matchedVehicle =
+                  vehicles.find(
+                    (v) =>
+                      (cb.plate && v.plate?.toUpperCase() === cb.plate?.toUpperCase()) ||
+                      (cb.vehicle && `${v.make} ${v.model}`.toLowerCase().includes(cb.vehicle.toLowerCase().split(' ')[1] || ''))
+                  ) ||
+                  vehicles.find((v) => v.category === cb.category) ||
+                  vehicles[0];
+
+                const branchId = cb.hub?.toLowerCase().includes('abuja')
+                  ? 'b0000000-0000-0000-0000-000000000002'
+                  : 'b0000000-0000-0000-0000-000000000001';
+
+                const newOpBooking: Booking = {
+                  id: `b-${cb.id.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+                  reference: cb.id,
+                  customerId,
+                  vehicleId: matchedVehicle.id,
+                  branchId,
+                  pickupAt: cb.pickupAt || new Date().toISOString(),
+                  returnAt: cb.returnAt || new Date(Date.now() + 3 * 86400000).toISOString(),
+                  status: cb.status,
+                  sourceChannel: 'customer',
+                  currentVersion: 1,
+                  createdAt: cb.pickupAt || new Date().toISOString(),
+                  quote: {
+                    billedPeriods: 3,
+                    lineItems: [],
+                    subtotalMinor: cb.amountMinor || 10000000,
+                    durationTier: null,
+                    durationDiscountPercent: 0,
+                    durationDiscountMinor: 0,
+                    afterDurationMinor: cb.amountMinor || 10000000,
+                    promoDiscountMinor: 0,
+                    afterPromoMinor: cb.amountMinor || 10000000,
+                    feesMinor: 0,
+                    depositMinor: 5000000,
+                    totalMinor: cb.amountMinor || 10000000,
+                    currency: 'NGN',
+                  },
+                };
+                updated.push(newOpBooking);
+                changed = true;
+              } else {
+                // If status changed in customer booking (e.g. cancelled by customer)
+                if (updated[existingIdx].status !== cb.status) {
+                  updated[existingIdx] = {
+                    ...updated[existingIdx],
+                    status: cb.status,
+                    updatedAt: new Date().toISOString(),
+                  };
+                  changed = true;
+                }
+              }
+            }
+          }
+
+          return changed ? updated : prevBookings;
+        });
+      } catch (err) {
+        console.warn('Customer bookings sync error:', err);
+      }
     };
-  }, []);
+
+    const handleSyncAll = () => {
+      syncAllProfiles();
+      syncCustomerBookings();
+    };
+
+    handleSyncAll();
+    window.addEventListener('storage', handleSyncAll);
+    window.addEventListener('drivefleet_profile_sync', handleSyncAll as EventListener);
+    window.addEventListener('drivefleet_booking_sync', handleSyncAll as EventListener);
+    return () => {
+      window.removeEventListener('storage', handleSyncAll);
+      window.removeEventListener('drivefleet_profile_sync', handleSyncAll as EventListener);
+      window.removeEventListener('drivefleet_booking_sync', handleSyncAll as EventListener);
+    };
+  }, [customers, vehicles]);
 
   // Conflict Checking Engine
   const checkAvailability = (
@@ -856,7 +1077,7 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       status: bookingData.status || 'confirmed',
       sourceChannel: bookingData.sourceChannel || 'staff',
       currentVersion: 1,
-      createdAt: new Date().toISOString(),
+      createdAt: bookingData.createdAt || new Date().toISOString(),
       quote: bookingData.quote || {
         billedPeriods: 3,
         lineItems: [],
@@ -874,7 +1095,7 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       },
     };
 
-    setBookings((prev) => [newBooking, ...prev]);
+    setBookings((prev) => [newBooking, ...prev.filter((b) => b.reference !== newBooking.reference)]);
 
     // Update customer rental count
     setCustomers((prev) =>
@@ -883,30 +1104,75 @@ export function OperationsProvider({ children }: { children: ReactNode }) {
       )
     );
 
+    // If staff/admin created a booking for a customer, mirror it into the customer's portal
+    const cust = customers.find((c) => c.id === newBooking.customerId);
+    const custEmail = cust?.email || (newBooking.customerId === 'c-adeyemi' ? 'chukwudi@drivefleet.demo' : null);
+    if (custEmail) {
+      const veh = vehicles.find((v) => v.id === newBooking.vehicleId);
+      const customerBookingItem: CustomerBooking = {
+        id: newBooking.reference,
+        vehicle: veh ? `${veh.make} ${veh.model} (${veh.year})` : 'Assigned Fleet Vehicle',
+        plate: veh?.plate || 'TBD',
+        category: veh?.category || 'sedan',
+        status: toCustomerBookingStatus(newBooking.status),
+        dates: `${newBooking.quote?.billedPeriods || 3} Days (${newBooking.pickupAt.split('T')[0]} → ${newBooking.returnAt.split('T')[0]})`,
+        pickupAt: newBooking.pickupAt,
+        returnAt: newBooking.returnAt,
+        hub: veh?.branch?.name || (newBooking.branchId.includes('2') ? 'Abuja Central Terminal' : 'Lagos Ikeja Main Hub'),
+        amountMinor: newBooking.quote?.totalMinor || 15000000,
+        image: veh?.images?.[0] || 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=600',
+      };
+      addUserBooking(custEmail, customerBookingItem);
+    }
+
     return newBooking;
   };
 
   const updateBooking = (id: string, updates: Partial<Booking>) => {
+    let updatedRef: string | undefined;
+    let updatedStatus: Booking['status'] | undefined;
+
     setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, ...updates, updatedAt: new Date().toISOString() } : b))
+      prev.map((b) => {
+        if (b.id === id || b.reference === id) {
+          const updated = { ...b, ...updates, updatedAt: new Date().toISOString() };
+          updatedRef = updated.reference;
+          updatedStatus = updated.status;
+          return updated;
+        }
+        return b;
+      })
     );
+
+    // Synchronize status changes back to customer account in localStorage
+    if (updatedRef && updatedStatus) {
+      updateCustomerBookingStatus(updatedRef, updatedStatus);
+    }
   };
 
   const cancelBooking = (id: string, reason?: string) => {
+    let cancelledRef: string | undefined;
+
     setBookings((prev) =>
-      prev.map((b) =>
-        b.id === id
-          ? {
-              ...b,
-              status: 'cancelled',
-              updatedAt: new Date().toISOString(),
-              latestVersion: b.latestVersion
-                ? { ...b.latestVersion, changeReason: reason || 'Cancelled by staff/admin' }
-                : undefined,
-            }
-          : b
-      )
+      prev.map((b) => {
+        if (b.id === id || b.reference === id) {
+          cancelledRef = b.reference;
+          return {
+            ...b,
+            status: 'cancelled',
+            updatedAt: new Date().toISOString(),
+            latestVersion: b.latestVersion
+              ? { ...b.latestVersion, changeReason: reason || 'Cancelled by staff/admin' }
+              : undefined,
+          };
+        }
+        return b;
+      })
     );
+
+    if (cancelledRef) {
+      updateCustomerBookingStatus(cancelledRef, 'cancelled', reason || 'Cancelled by Fleet Operations');
+    }
   };
 
   // Maintenance Methods

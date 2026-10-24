@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOperations } from '@/contexts/OperationsContext';
 import { addUserBooking, CustomerBooking } from '@/lib/userBookings';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
 import { calculateQuote } from '@/lib/pricing-engine';
@@ -10,6 +11,7 @@ import { Check, ShieldCheck, Lock, CreditCard, AlertCircle, RefreshCw, ArrowRigh
 export function CheckoutSimulatorPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addBooking, customers } = useOperations();
 
   const draftBookingStr = typeof window !== 'undefined' ? localStorage.getItem('drivefleet_draft_booking') : null;
   let draftData: any = null;
@@ -61,6 +63,8 @@ export function CheckoutSimulatorPage() {
       setIsSubmitting(false);
       if (simulationOutcome === 'approved') {
         const bookingRef = 'DF-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+        const targetEmail = user?.email || draftData?.email || 'chukwudi@drivefleet.demo';
+
         const newBooking: CustomerBooking = {
           id: bookingRef,
           vehicle: `${vehicle.make} ${vehicle.model} (${vehicle.year})`,
@@ -74,7 +78,44 @@ export function CheckoutSimulatorPage() {
           amountMinor: quote.totalMinor,
           image: vehicle.images?.[0] || 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=600',
         };
-        addUserBooking(user?.email || draftData?.email || 'chukwudi@drivefleet.demo', newBooking);
+        addUserBooking(targetEmail, newBooking);
+
+        // Record directly into Operations Context so Admin and Staff see it immediately
+        const matchingCust = customers.find(
+          (c) => c.email?.toLowerCase() === targetEmail.toLowerCase() || c.id === user?.id
+        );
+        const customerId =
+          matchingCust?.id ||
+          user?.id ||
+          (targetEmail.includes('chukwudi') ? 'c-adeyemi' : `crm-${Date.now()}`);
+
+        addBooking({
+          id: `b-${bookingRef.toLowerCase()}`,
+          reference: bookingRef,
+          customerId,
+          vehicleId: vehicle.id,
+          branchId: vehicle.branchId,
+          pickupAt,
+          returnAt,
+          status: 'confirmed',
+          sourceChannel: 'customer',
+          quote: {
+            billedPeriods: quote.billedPeriods || 1,
+            lineItems: quote.lineItems || [],
+            subtotalMinor: quote.subtotalMinor || quote.totalMinor,
+            durationTier: quote.durationTier || null,
+            durationDiscountPercent: quote.durationDiscountPercent || 0,
+            durationDiscountMinor: quote.durationDiscountMinor || 0,
+            afterDurationMinor: quote.afterDurationMinor || quote.totalMinor,
+            promoDiscountMinor: quote.promoDiscountMinor || 0,
+            afterPromoMinor: quote.afterPromoMinor || quote.totalMinor,
+            feesMinor: quote.feesMinor || 0,
+            depositMinor: quote.depositMinor || 5000000,
+            totalMinor: quote.totalMinor,
+            currency: 'NGN',
+          },
+        });
+
         navigate(`/booking-confirmation/${bookingRef}`);
       } else if (simulationOutcome === 'conflict') {
         setErrorMessage(
