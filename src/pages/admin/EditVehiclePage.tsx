@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useOperations } from '@/contexts/OperationsContext';
 import { VehicleCategory, TransmissionType, FuelType, VehicleOperationalState } from '@/lib/types';
+import { VehicleImageUploader } from '@/components/admin/VehicleImageUploader';
 import {
   Car, ArrowLeft, CheckCircle2, DollarSign,
-  MapPin, Gauge, Settings
+  MapPin, Gauge, Settings, Image as ImageIcon
 } from 'lucide-react';
 
 export function EditVehiclePage() {
@@ -26,6 +27,7 @@ export function EditVehiclePage() {
   const [transmission, setTransmission] = useState<TransmissionType>('automatic');
   const [fuelType, setFuelType] = useState<FuelType>('petrol');
   const [operationalState, setOperationalState] = useState<VehicleOperationalState>('ready');
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (vehicle) {
@@ -41,6 +43,7 @@ export function EditVehiclePage() {
       setTransmission(vehicle.transmission);
       setFuelType(vehicle.fuelType);
       setOperationalState(vehicle.operationalState);
+      setImages(vehicle.images || []);
     }
   }, [vehicle]);
 
@@ -84,6 +87,7 @@ export function EditVehiclePage() {
       transmission,
       fuelType,
       operationalState,
+      images,
     });
 
     navigate(`/admin/vehicles/${vehicle.id}`);
@@ -231,6 +235,21 @@ export function EditVehiclePage() {
                 <option value="out_of_service">Out of Service</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        {/* Vehicle Photo Gallery & Uploads */}
+        <div className="pt-4 border-t border-slate-100">
+          <h2 className="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
+            <ImageIcon className="w-4 h-4 text-blue-600" />
+            <span>Vehicle Images & Showcase Photos</span>
+          </h2>
+          <div className="mt-4">
+            <VehicleImageUploader
+              images={images}
+              onChange={setImages}
+              category={category}
+            />
           </div>
         </div>
 

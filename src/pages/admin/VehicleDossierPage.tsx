@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useOperations } from '@/contexts/OperationsContext';
 import { formatCurrency, formatKilometers } from '@/lib/formatters';
@@ -12,6 +12,7 @@ export function VehicleDossierPage() {
   const { vehicleId } = useParams<{ vehicleId: string }>();
   const { vehicles, bookings, maintenanceTasks, updateVehicle } = useOperations();
   const navigate = useNavigate();
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const vehicle = vehicles.find((v) => v.id === vehicleId);
 
@@ -109,10 +110,26 @@ export function VehicleDossierPage() {
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <img
-              src={vehicle.images?.[0] || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800'}
+              src={vehicle.images?.[activeImageIndex] || vehicle.images?.[0] || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800'}
               alt={`${vehicle.make} ${vehicle.model}`}
-              className="w-full h-48 object-cover bg-slate-100"
+              className="w-full h-52 object-cover bg-slate-100"
             />
+            {vehicle.images && vehicle.images.length > 1 && (
+              <div className="p-2 bg-slate-50 border-t border-slate-100 flex gap-2 overflow-x-auto">
+                {vehicle.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`w-12 h-10 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${
+                      activeImageIndex === idx ? 'border-blue-600 scale-105 shadow-sm' : 'border-slate-200 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="p-4 space-y-3 text-xs">
               <div className="flex justify-between items-center pb-2 border-b border-slate-100">
                 <span className="text-slate-500 font-medium">Daily Tariff</span>

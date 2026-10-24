@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useOperations } from '@/contexts/OperationsContext';
 import { VehicleCategory, TransmissionType, FuelType } from '@/lib/types';
+import { VehicleImageUploader } from '@/components/admin/VehicleImageUploader';
 import {
   Car, ArrowLeft, CheckCircle2, ShieldCheck,
-  DollarSign, MapPin, Gauge
+  DollarSign, MapPin, Gauge, Image as ImageIcon
 } from 'lucide-react';
 
 export function AddVehiclePage() {
@@ -22,7 +23,7 @@ export function AddVehiclePage() {
   const [seats, setSeats] = useState(5);
   const [transmission, setTransmission] = useState<TransmissionType>('automatic');
   const [fuelType, setFuelType] = useState<FuelType>('petrol');
-  const [imageUrl, setImageUrl] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,7 +70,7 @@ export function AddVehiclePage() {
       transmission,
       fuelType,
       operationalState: 'ready',
-      images: imageUrl.trim() ? [imageUrl.trim()] : [defaultImages[category]],
+      images: images.length > 0 ? images : [defaultImages[category]],
     });
 
     navigate(`/admin/vehicles/${newVehicle.id}`);
@@ -263,17 +264,21 @@ export function AddVehiclePage() {
                 <option value="electric">Electric (EV)</option>
               </select>
             </div>
+          </div>
+        </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Custom Photo URL</label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="Optional (defaults to category photo)"
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+        {/* Vehicle Photo Gallery & Uploads */}
+        <div className="pt-4 border-t border-slate-100">
+          <h2 className="text-sm font-bold text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
+            <ImageIcon className="w-4 h-4 text-blue-600" />
+            <span>Vehicle Images & Showcase Photos</span>
+          </h2>
+          <div className="mt-4">
+            <VehicleImageUploader
+              images={images}
+              onChange={setImages}
+              category={category}
+            />
           </div>
         </div>
 
