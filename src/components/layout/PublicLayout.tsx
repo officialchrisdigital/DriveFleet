@@ -215,14 +215,6 @@ export function PublicLayout() {
                     <UserPlus className="w-4 h-4 text-blue-600" />
                     <span>Register New Account</span>
                   </Link>
-                  <Link
-                    to="/admin/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2 rounded-lg text-xs text-slate-500 hover:text-slate-900 flex items-center gap-1.5"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Staff & Admin Portal Login</span>
-                  </Link>
                 </>
               ) : role === 'customer' ? (
                 <>

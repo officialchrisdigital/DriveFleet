@@ -18,11 +18,11 @@ export function ProtectedRoute({
 
   // 1. If not authenticated
   if (!isAuthenticated) {
-    if (allowedRoles?.includes('staff') || allowedRoles?.includes('admin')) {
-      return <Navigate to="/admin/login" replace state={{ from: location }} />;
+    if (allowedRoles?.includes('customer') || !allowedRoles) {
+      const redirectUrl = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+      return <Navigate to={redirectUrl} replace />;
     }
-    const redirectUrl = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
-    return <Navigate to={redirectUrl} replace />;
+    return <Navigate to="/admin/login" replace state={{ from: location }} />;
   }
 
   // 2. If authenticated, check allowed role
