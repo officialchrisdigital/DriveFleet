@@ -348,12 +348,11 @@ export function PublicLayout() {
 
           <div>
             <h4 className="text-white text-xs font-semibold uppercase tracking-wider mb-3">
-              Portals & Legal
+              Account & Legal
             </h4>
             <ul className="space-y-2 text-xs">
               <li><Link to="/login" className="hover:text-white">Customer Sign In</Link></li>
               <li><Link to="/register" className="hover:text-white">Create Account</Link></li>
-              <li><Link to="/admin/login" className="text-blue-400 hover:text-blue-300 font-medium">Staff & Ops Portal</Link></li>
               <li><Link to="/terms" className="hover:text-white">Rental Terms & Conditions</Link></li>
               <li><Link to="/privacy" className="hover:text-white">Data Privacy Policy</Link></li>
             </ul>
