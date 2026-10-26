@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogIn, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
+import { LogIn, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 
 export function LoginPage() {
   const { login, isAuthenticated, user } = useAuth();
@@ -138,17 +138,6 @@ export function LoginPage() {
             </p>
           </div>
         </form>
-
-        {/* Link to Staff & Admin Login */}
-        <div className="text-center pt-2">
-          <Link
-            to="/admin/login"
-            className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl transition-colors"
-          >
-            <ShieldCheck className="w-4 h-4 text-slate-600" />
-            <span>DriveFleet Staff or Manager? Access Operations Deck →</span>
-          </Link>
-        </div>
       </div>
     </div>
   );
