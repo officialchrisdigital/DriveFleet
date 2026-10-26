@@ -47,7 +47,7 @@ export function PublicLayout() {
           </div>
 
           {/* Center Nav Links (Visible on large screens) */}
-          <nav className="hidden lg:flex items-center gap-4 xl:gap-7 text-xs xl:text-sm font-medium text-slate-600 shrink-0">
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-7 text-[15px] xl:text-base font-medium text-slate-600 shrink-0">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
