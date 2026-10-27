@@ -106,97 +106,87 @@ export function CheckoutSimulatorPage() {
     },
   });
 
-  const depositMinor = quote?.depositMinor || (
-    vehicle.category === 'luxury' ? 10000000 :
-    vehicle.category === 'suv' ? 7500000 :
-    vehicle.category === 'economy' ? 3500000 : 5000000
-  );
-
   const handleConfirmReservation = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
     setSubmissionStep('Validating test card and billing credentials...');
 
     setTimeout(() => {
-      setSubmissionStep(`Placing ${formatCurrency(depositMinor)} refundable deposit pre-auth hold...`);
+      setSubmissionStep('Securing atomic vehicle inventory lock...');
 
       setTimeout(() => {
-        setSubmissionStep('Securing atomic vehicle inventory lock...');
+        setIsSubmitting(false);
+        setSubmissionStep('');
 
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setSubmissionStep('');
+        if (simulationOutcome === 'approved') {
+          const bookingRef = 'DF-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+          const targetEmail = user?.email || draftData?.email || 'chukwudi@drivefleet.demo';
 
-          if (simulationOutcome === 'approved') {
-            const bookingRef = 'DF-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
-            const targetEmail = user?.email || draftData?.email || 'chukwudi@drivefleet.demo';
+          const newBooking: CustomerBooking = {
+            id: bookingRef,
+            vehicle: `${vehicle.make} ${vehicle.model} (${vehicle.year})`,
+            plate: vehicle.plate,
+            category: vehicle.category,
+            status: 'confirmed',
+            dates: `${quote.billedPeriods} Days (${pickupAt.split('T')[0]} → ${returnAt.split('T')[0]})`,
+            pickupAt,
+            returnAt,
+            hub,
+            amountMinor: quote.totalMinor,
+            image: vehicle.images?.[0] || 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=600',
+          };
+          addUserBooking(targetEmail, newBooking);
 
-            const newBooking: CustomerBooking = {
-              id: bookingRef,
-              vehicle: `${vehicle.make} ${vehicle.model} (${vehicle.year})`,
-              plate: vehicle.plate,
-              category: vehicle.category,
-              status: 'confirmed',
-              dates: `${quote.billedPeriods} Days (${pickupAt.split('T')[0]} → ${returnAt.split('T')[0]})`,
-              pickupAt,
-              returnAt,
-              hub,
-              amountMinor: quote.totalMinor,
-              image: vehicle.images?.[0] || 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&q=80&w=600',
-            };
-            addUserBooking(targetEmail, newBooking);
+          // Record directly into Operations Context so Admin and Staff see it immediately
+          const matchingCust = customers.find(
+            (c) => c.email?.toLowerCase() === targetEmail.toLowerCase() || c.id === user?.id
+          );
+          const customerId =
+            matchingCust?.id ||
+            user?.id ||
+            (targetEmail.includes('chukwudi') ? 'c-adeyemi' : `crm-${Date.now()}`);
 
-            // Record directly into Operations Context so Admin and Staff see it immediately
-            const matchingCust = customers.find(
-              (c) => c.email?.toLowerCase() === targetEmail.toLowerCase() || c.id === user?.id
-            );
-            const customerId =
-              matchingCust?.id ||
-              user?.id ||
-              (targetEmail.includes('chukwudi') ? 'c-adeyemi' : `crm-${Date.now()}`);
+          addBooking({
+            id: `b-${bookingRef.toLowerCase()}`,
+            reference: bookingRef,
+            customerId,
+            vehicleId: vehicle.id,
+            branchId: vehicle.branchId,
+            pickupAt,
+            returnAt,
+            status: 'confirmed',
+            sourceChannel: 'customer',
+            createdBy: user?.id || user?.email || targetEmail,
+            createdByName: user ? `${user.firstName} ${user.lastName}` : (draftData?.firstName ? `${draftData.firstName} ${draftData.lastName}` : 'Direct Customer'),
+            quote: {
+              billedPeriods: quote.billedPeriods || 1,
+              lineItems: quote.lineItems || [],
+              subtotalMinor: quote.subtotalMinor || quote.totalMinor,
+              durationTier: quote.durationTier || null,
+              durationDiscountPercent: quote.durationDiscountPercent || 0,
+              durationDiscountMinor: quote.durationDiscountMinor || 0,
+              afterDurationMinor: quote.afterDurationMinor || quote.totalMinor,
+              promoDiscountMinor: quote.promoDiscountMinor || 0,
+              afterPromoMinor: quote.afterPromoMinor || quote.totalMinor,
+              feesMinor: quote.feesMinor || 0,
+              depositMinor: 0,
+              totalMinor: quote.totalMinor,
+              currency: 'NGN',
+            },
+          });
 
-            addBooking({
-              id: `b-${bookingRef.toLowerCase()}`,
-              reference: bookingRef,
-              customerId,
-              vehicleId: vehicle.id,
-              branchId: vehicle.branchId,
-              pickupAt,
-              returnAt,
-              status: 'confirmed',
-              sourceChannel: 'customer',
-              createdBy: user?.id || user?.email || targetEmail,
-              createdByName: user ? `${user.firstName} ${user.lastName}` : (draftData?.firstName ? `${draftData.firstName} ${draftData.lastName}` : 'Direct Customer'),
-              quote: {
-                billedPeriods: quote.billedPeriods || 1,
-                lineItems: quote.lineItems || [],
-                subtotalMinor: quote.subtotalMinor || quote.totalMinor,
-                durationTier: quote.durationTier || null,
-                durationDiscountPercent: quote.durationDiscountPercent || 0,
-                durationDiscountMinor: quote.durationDiscountMinor || 0,
-                afterDurationMinor: quote.afterDurationMinor || quote.totalMinor,
-                promoDiscountMinor: quote.promoDiscountMinor || 0,
-                afterPromoMinor: quote.afterPromoMinor || quote.totalMinor,
-                feesMinor: quote.feesMinor || 0,
-                depositMinor,
-                totalMinor: quote.totalMinor,
-                currency: 'NGN',
-              },
-            });
-
-            navigate(`/booking-confirmation/${bookingRef}`);
-          } else if (simulationOutcome === 'conflict') {
-            setErrorMessage(
-              'AVAILABILITY_CONFLICT: Another reservation (or planned maintenance block) was committed for this vehicle interval concurrently. Your draft inputs have been safely preserved.'
-            );
-          } else {
-            setErrorMessage(
-              'SIMULATED_GATEWAY_DECLINE: The simulated corporate credit ledger declined authorization. No booking was created, and promo usage remains unconsumed.'
-            );
-          }
-        }, 500);
-      }, 500);
-    }, 500);
+          navigate(`/booking-confirmation/${bookingRef}`);
+        } else if (simulationOutcome === 'conflict') {
+          setErrorMessage(
+            'AVAILABILITY_CONFLICT: Another reservation (or planned maintenance block) was committed for this vehicle interval concurrently. Your draft inputs have been safely preserved.'
+          );
+        } else {
+          setErrorMessage(
+            'SIMULATED_GATEWAY_DECLINE: The simulated corporate credit ledger declined authorization. No booking was created, and promo usage remains unconsumed.'
+          );
+        }
+      }, 600);
+    }, 600);
   };
 
   const allAgreed = agreeCancellation && agreeFuel && agreeMileage && agreeMasterSla;
@@ -262,108 +252,6 @@ export function CheckoutSimulatorPage() {
                 </div>
                 <div className="text-xs text-blue-700 font-medium pt-1">
                   📍 {hub} → Same Depot Return
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Detailed Security Caution Deposit Section */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Security Caution Deposit (Pre-Authorization Hold)
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Temporary guarantee ring-fence • 100% Refundable
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-lg font-black font-mono text-slate-900 block">
-                  {formatCurrency(depositMinor)}
-                </span>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Zero Direct Charge Today
-                </span>
-              </div>
-            </div>
-
-            {/* Explainer Callout */}
-            <div className="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 text-xs text-slate-700 space-y-2">
-              <div className="flex items-start gap-2.5 font-semibold text-blue-900">
-                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <span>How Does the Security Deposit Pre-Authorization Work?</span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed pl-6">
-                No money leaves your bank account today for this caution deposit. Instead, a temporary pre-authorization hold of <strong>{formatCurrency(depositMinor)}</strong> is placed on your payment card at key dispatch. This acts as a standard insurance guarantee against incidentals such as unmet full-to-full fuel return, highway toll deficits, or late extension fees.
-              </p>
-            </div>
-
-            {/* 4-Stage Lifecycle Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                  1
-                </div>
-                <div className="font-bold text-slate-900 text-xs">Pre-Auth Hold</div>
-                <p className="text-slate-500 text-[11px] leading-snug">
-                  Placed on card at dispatch. Zero funds deducted from your balance.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                  2
-                </div>
-                <div className="font-bold text-slate-900 text-xs">Trip Telematics</div>
-                <p className="text-slate-500 text-[11px] leading-snug">
-                  Enjoy your rental. Odometer and safety telemetry monitor usage.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                  3
-                </div>
-                <div className="font-bold text-slate-900 text-xs">Depot Inspection</div>
-                <p className="text-slate-500 text-[11px] leading-snug">
-                  3-minute physical handover check verifies 8/8 fuel and exterior condition.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1.5">
-                <div className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
-                  4
-                </div>
-                <div className="font-bold text-emerald-900 text-xs">Auto Release</div>
-                <p className="text-emerald-700 text-[11px] leading-snug font-medium">
-                  100% hold voided automatically within <strong>24–48 hours</strong> post-return.
-                </p>
-              </div>
-            </div>
-
-            {/* Checklist of Release Conditions */}
-            <div className="pt-2 border-t border-slate-100 space-y-2">
-              <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                Guaranteed Full Refund Release Conditions:
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-600">
-                <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200/60">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Full-to-Full (8/8) Fuel Level</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200/60">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Zero New Dents or Damage</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200/60">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Timely Scheduled Return</span>
                 </div>
               </div>
             </div>
@@ -439,7 +327,7 @@ export function CheckoutSimulatorPage() {
                 <div>
                   <div className="font-bold text-slate-900">DriveFleet Master Operations & Telematics Agreement</div>
                   <p className="text-slate-500 mt-0.5 text-[11px]">
-                    I accept DriveFleet Enterprise Terms of Service, liability limitation frameworks, and authorization for security deposit pre-authorization hold.
+                    I accept DriveFleet Enterprise Terms of Service, liability limitation frameworks, and vehicle care agreement.
                   </p>
                 </div>
               </label>
@@ -512,31 +400,20 @@ export function CheckoutSimulatorPage() {
               </div>
             </div>
 
-            {/* Payment Authorization Limits Reassurance */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2 text-xs">
+            {/* Payment Summary */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-1.5 text-xs">
               <div className="flex justify-between items-center text-slate-700">
                 <span className="flex items-center gap-1.5">
                   <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Immediate Rental Charge:</span>
+                  <span>Total Rental Charge to Card:</span>
                 </span>
-                <span className="font-mono font-bold text-slate-900">
+                <span className="font-mono font-bold text-slate-900 text-sm">
                   {formatCurrency(quote.totalMinor)}
                 </span>
               </div>
-              <div className="flex justify-between items-center text-slate-700">
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Refundable Security Deposit Hold:</span>
-                </span>
-                <span className="font-mono font-bold text-emerald-700">
-                  {formatCurrency(depositMinor)} (Hold Only)
-                </span>
-              </div>
-              <div className="pt-2 border-t border-slate-200 flex justify-between items-center font-bold text-slate-900">
-                <span>Total Pre-Authorization Request:</span>
-                <span className="font-mono text-blue-600">
-                  {formatCurrency(quote.totalMinor + depositMinor)}
-                </span>
+              <div className="flex justify-between items-center text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
+                <span>Taxes, VAT & Telematics:</span>
+                <span className="text-emerald-700 font-semibold">100% Fully Included</span>
               </div>
             </div>
 
@@ -631,7 +508,7 @@ export function CheckoutSimulatorPage() {
               ) : (
                 <div className="flex items-center gap-2">
                   <Lock className="w-4 h-4" />
-                  <span>Confirm Reservation ({formatCurrency(quote.totalMinor)} Charged • {formatCurrency(depositMinor)} Hold)</span>
+                  <span>Confirm Reservation ({formatCurrency(quote.totalMinor)})</span>
                 </div>
               )}
             </button>
@@ -681,33 +558,18 @@ export function CheckoutSimulatorPage() {
                 <span>Net Billed Rental Total:</span>
                 <span className="font-mono">{formatCurrency(quote.totalMinor)}</span>
               </div>
-              <div className="flex justify-between text-emerald-700 font-semibold pt-1">
-                <span className="flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Refundable Security Deposit (Hold):</span>
-                </span>
-                <span className="font-mono text-emerald-700">{formatCurrency(depositMinor)}</span>
-              </div>
             </div>
 
             <div className="pt-3 border-t border-slate-200 space-y-3">
               <div className="flex items-baseline justify-between">
                 <div>
-                  <span className="text-sm font-bold text-slate-900 block">Charged Today</span>
-                  <span className="text-[10px] text-slate-400">Direct debit for rental reservation</span>
+                  <span className="text-sm font-bold text-slate-900 block">Total Charged Today</span>
+                  <span className="text-[10px] text-slate-400">All taxes, insurance & VAT included</span>
                 </div>
                 <div className="text-right">
                   <span className="text-2xl font-black text-blue-600">
                     {formatCurrency(quote.totalMinor)}
                   </span>
-                </div>
-              </div>
-
-              <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold block">100% Refundable Caution Hold</span>
-                  <span>{formatCurrency(depositMinor)} pre-authorized at pickup, automatically voided within 24–48h after return.</span>
                 </div>
               </div>
             </div>

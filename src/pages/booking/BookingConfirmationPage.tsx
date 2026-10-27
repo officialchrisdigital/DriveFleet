@@ -22,7 +22,6 @@ export function BookingConfirmationPage() {
   const displayRef = bookingId || currentBooking?.reference || 'DF-2026-9812';
   const renterName = currentBooking?.createdByName || (user ? `${user.firstName} ${user.lastName}` : 'Chukwudi Adeyemi');
   const totalAmount = currentBooking?.quote?.totalMinor || 12960000;
-  const depositAmount = currentBooking?.quote?.depositMinor || 5000000;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -219,10 +218,6 @@ export function BookingConfirmationPage() {
                   <span className="font-mono">-{formatCurrency(currentBooking.quote.promoDiscountMinor)}</span>
                 </div>
               ) : null}
-              <div className="flex justify-between text-slate-500 pt-1">
-                <span>Refundable Caution Deposit (Hold):</span>
-                <span className="font-mono text-slate-700">{formatCurrency(depositAmount)}</span>
-              </div>
             </div>
 
             <div className="pt-3 border-t border-slate-200">
