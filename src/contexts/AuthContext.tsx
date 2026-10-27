@@ -73,6 +73,11 @@ export const DEFAULT_CREDENTIALS = {
       phone: '+234 803 555 0192',
       active: true,
       preferredBranchId: 'b0000000-0000-0000-0000-000000000001',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
+      renterDetails: {
+        licenseNumber: 'FRSC-LAG-8492018B',
+        nationalId: 'NIMC-9402',
+      },
       createdAt: '2026-03-01T08:00:00Z',
     },
   },
@@ -163,6 +168,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       if (match) {
         matchedUser = { ...match.user };
+        if (match.renterDetails) {
+          matchedUser.renterDetails = match.renterDetails;
+        }
       }
     }
 
@@ -177,6 +185,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error: 'Access denied: This portal is reserved for DriveFleet operations personnel. Customers please use the main sign in.',
       };
     }
+
+    // Merge persistent customer CRM details if available
+    try {
+      const crmData = localStorage.getItem('drivefleet_operations_customers');
+      if (crmData) {
+        const crmList = JSON.parse(crmData);
+        const matchCrm = crmList.find((c: any) => c.email?.toLowerCase() === cleanEmail);
+        if (matchCrm) {
+          if (matchCrm.avatarUrl && !matchedUser.avatarUrl) {
+            matchedUser.avatarUrl = matchCrm.avatarUrl;
+          }
+          if (matchCrm.renterDetails && !matchedUser.renterDetails) {
+            matchedUser.renterDetails = matchCrm.renterDetails;
+          }
+        }
+      }
+    } catch {}
 
     // Merge persistent user overrides (such as custom avatarUrl)
     const overrides = getUserOverrides();
@@ -223,6 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       firstName: data.firstName.trim(),
       lastName: data.lastName.trim(),
       phone: data.phone.trim(),
+      renterDetails: data.renterDetails,
       active: true,
       createdAt: new Date().toISOString(),
     };

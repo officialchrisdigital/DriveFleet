@@ -21,6 +21,7 @@ export interface User {
   active: boolean;
   preferredBranchId?: string;
   avatarUrl?: string;
+  renterDetails?: RenterDetails;
   createdAt: string;
   updatedAt?: string;
 }
