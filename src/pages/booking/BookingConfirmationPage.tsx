@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
 import { formatCurrency } from '@/lib/formatters';
@@ -10,6 +11,7 @@ import {
 
 export function BookingConfirmationPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
+  const { user } = useAuth();
   const { bookings, vehicles } = useOperations();
 
   const currentBooking = bookings.find((b) => b.reference === bookingId || b.id === bookingId);
@@ -18,6 +20,9 @@ export function BookingConfirmationPage() {
     : DEMO_VEHICLES[0];
   const vehicle = matchedVehicle || DEMO_VEHICLES[0];
   const displayRef = bookingId || currentBooking?.reference || 'DF-2026-9812';
+  const renterName = currentBooking?.createdByName || (user ? `${user.firstName} ${user.lastName}` : 'Chukwudi Adeyemi');
+  const totalAmount = currentBooking?.quote?.totalMinor || 12960000;
+  const depositAmount = currentBooking?.quote?.depositMinor || 5000000;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -162,7 +167,7 @@ export function BookingConfirmationPage() {
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                 <div className="font-bold text-slate-900 mb-1">1. Original Driver's License</div>
                 <p className="text-slate-500 text-[11px]">
-                  Must match renter: <strong>Chukwudi Adeyemi</strong>.
+                  Must match renter: <strong>{renterName}</strong>.
                 </p>
                 <span className="text-[10px] font-bold text-emerald-600 mt-2 block">✓ Verified Online</span>
               </div>
@@ -203,24 +208,20 @@ export function BookingConfirmationPage() {
 
             <div className="space-y-2 text-xs text-slate-600">
               <div className="flex justify-between">
-                <span>1 × Weekday Base (Fri Oct 23):</span>
-                <span className="font-mono text-slate-900 font-medium">NGN 45,000</span>
+                <span>Vehicle Base Rental:</span>
+                <span className="font-mono text-slate-900 font-medium">
+                  {formatCurrency(currentBooking?.quote?.subtotalMinor || totalAmount)}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span>2 × Weekend Period (Sat & Sun @ +10%):</span>
-                <span className="font-mono text-slate-900 font-medium">NGN 99,000</span>
-              </div>
-              <div className="pt-2 border-t border-slate-100 flex justify-between font-semibold text-slate-800">
-                <span>Subtotal (3 Days):</span>
-                <span className="font-mono">NGN 144,000</span>
-              </div>
-              <div className="flex justify-between text-emerald-600 font-semibold">
-                <span>Promo Code (FLEETDEMO10):</span>
-                <span className="font-mono">-NGN 14,400</span>
-              </div>
+              {currentBooking?.quote?.promoDiscountMinor ? (
+                <div className="flex justify-between text-emerald-600 font-semibold">
+                  <span>Promo Discount:</span>
+                  <span className="font-mono">-{formatCurrency(currentBooking.quote.promoDiscountMinor)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between text-slate-500 pt-1">
-                <span>Refundable Deposit (Hold):</span>
-                <span className="font-mono text-slate-700">NGN 50,000</span>
+                <span>Refundable Caution Deposit (Hold):</span>
+                <span className="font-mono text-slate-700">{formatCurrency(depositAmount)}</span>
               </div>
             </div>
 
@@ -232,7 +233,7 @@ export function BookingConfirmationPage() {
                 </div>
                 <div className="text-right">
                   <span className="text-2xl font-black text-blue-600">
-                    NGN 129,600
+                    {formatCurrency(totalAmount)}
                   </span>
                 </div>
               </div>
