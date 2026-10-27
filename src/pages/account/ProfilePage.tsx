@@ -6,25 +6,6 @@ import {
   Sparkles, ShieldAlert
 } from 'lucide-react';
 
-const PRESET_AVATARS = [
-  {
-    name: 'Executive Suit',
-    url: 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?auto=format&fit=crop&q=80&w=400',
-  },
-  {
-    name: 'Corporate Director',
-    url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
-  },
-  {
-    name: 'Senior Coordinator',
-    url: 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?auto=format&fit=crop&q=80&w=400',
-  },
-  {
-    name: 'Fleet Manager',
-    url: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&q=80&w=400',
-  },
-];
-
 export function ProfilePage() {
   const { user, role, updateProfile } = useAuth();
 
@@ -101,12 +82,6 @@ export function ProfilePage() {
     };
     reader.readAsDataURL(file);
     e.target.value = '';
-  };
-
-  const handleSelectPreset = (url: string) => {
-    updateProfile({ avatarUrl: url });
-    setAvatarNotice('Preset avatar applied successfully!');
-    setTimeout(() => setAvatarNotice(null), 3000);
   };
 
   const handleRemoveAvatar = () => {
@@ -215,7 +190,7 @@ export function ProfilePage() {
               </div>
               <div className="text-xs text-slate-500 font-mono mt-0.5">{user?.email}</div>
               <p className="text-xs text-slate-600 mt-2">
-                Upload a custom photo or choose an executive avatar. Supports JPEG, PNG, or WebP up to 5MB.
+                Upload your personal profile photo. Supports JPEG, PNG, or WebP up to 5MB.
               </p>
             </div>
 
@@ -231,7 +206,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-colors cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>Upload New Avatar</span>
@@ -241,37 +216,12 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={handleRemoveAvatar}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 text-xs font-medium rounded-xl transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200 text-xs font-medium rounded-xl transition-colors cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Reset to Default</span>
                 </button>
               )}
-            </div>
-
-            {/* Presets Row */}
-            <div className="pt-2">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-2">
-                Or select an authentic executive portrait:
-              </span>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-                {PRESET_AVATARS.map((preset) => (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    onClick={() => handleSelectPreset(preset.url)}
-                    className="flex items-center gap-2 p-1.5 pr-2.5 rounded-full border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition-colors bg-white shadow-xs"
-                    title={`Use ${preset.name}`}
-                  >
-                    <img
-                      src={preset.url}
-                      alt={preset.name}
-                      className="w-7 h-7 rounded-full object-cover"
-                    />
-                    <span className="text-[11px] font-medium text-slate-700">{preset.name}</span>
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Notifications */}
