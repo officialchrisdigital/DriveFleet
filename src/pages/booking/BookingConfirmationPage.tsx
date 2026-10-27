@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
@@ -25,6 +26,9 @@ export function BookingConfirmationPage() {
   const displayRef = bookingId || currentBooking?.reference || 'DF-2026-9812';
   const renterName = currentBooking?.createdByName || (user ? `${user.firstName} ${user.lastName}` : 'Chukwudi Adeyemi');
   const totalAmount = currentBooking?.quote?.totalMinor || 12960000;
+  const qrCodeValue = typeof window !== 'undefined'
+    ? `${window.location.origin}/booking-confirmation/${displayRef}`
+    : `https://drivefleet.ng/booking-confirmation/${displayRef}`;
 
   const handlePrintSummary = () => {
     setIsPrinting(true);
@@ -174,13 +178,19 @@ export function BookingConfirmationPage() {
 
               {/* QR and Location Details */}
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
-                <div className="sm:col-span-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center space-y-2">
-                  <div className="w-28 h-28 mx-auto bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center font-mono text-[9px] text-slate-400">
-                    [QR CODE: DF-AUTH-9812]
+                <div className="sm:col-span-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center space-y-2.5">
+                  <div className="w-28 h-28 mx-auto bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex items-center justify-center">
+                    <QRCodeSVG
+                      value={qrCodeValue}
+                      size={96}
+                      level="M"
+                      includeMargin={false}
+                      className="w-full h-full"
+                    />
                   </div>
                   <div className="text-[10px] font-mono text-slate-500">
                     Present at Station Desk Bay 2<br />
-                    <span className="font-bold text-slate-800">DF-AUTH-9812-SYNC</span>
+                    <span className="font-bold text-slate-800 tracking-tight">#{displayRef}</span>
                   </div>
                 </div>
 

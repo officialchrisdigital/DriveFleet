@@ -69,7 +69,7 @@ export function generateVoucherPdfString(data: VoucherPdfData): string {
 
   const issueDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   ops.push(cSlateMuted);
-  ops.push(`BT /F2 8 Tf 340 696 Td (Issue Date: ${escapePdfText(issueDate)}  |  Auth: DF-AUTH-9812-SYNC) Tj ET`);
+  ops.push(`BT /F2 8 Tf 340 696 Td (Issue Date: ${escapePdfText(issueDate)}  |  Fast-Track Station Bay 2) Tj ET`);
 
   // 3. Two columns: Renter Info (left) & Vehicle Info (right)
   // Left Box: Primary Renter
