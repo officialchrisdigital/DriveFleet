@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
 import { VehicleCard } from '@/components/vehicles/VehicleCard';
-import { Search, Calendar, MapPin, ShieldCheck, Clock, CheckCircle2, Award, ArrowRight } from 'lucide-react';
+import { Search, Calendar, MapPin, ShieldCheck, Clock, CheckCircle2, Award, ArrowRight, Car } from 'lucide-react';
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -39,8 +39,8 @@ export function HomePage() {
           </p>
 
           {/* Booking Search Widget (Exact Mockup Match) */}
-          <div className="max-w-5xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-xl p-5 sm:p-6 text-left relative z-10">
-            <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="max-w-6xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-xl p-5 sm:p-6 text-left relative z-10">
+            <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-blue-600" />
@@ -49,7 +49,7 @@ export function HomePage() {
                 <select
                   value={selectedBranch}
                   onChange={(e) => setSelectedBranch(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 h-[42px] cursor-pointer"
                 >
                   <option value="ikeja">Lagos – Ikeja Main Branch (GRA)</option>
                   <option value="abuja">Abuja – Central Terminal Hub</option>
@@ -66,13 +66,13 @@ export function HomePage() {
                     type="date"
                     value={pickupDate}
                     onChange={(e) => setPickupDate(e.target.value)}
-                    className="w-2/3 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-medium text-slate-800 date-picker-black cursor-pointer"
+                    className="w-2/3 bg-slate-50 border border-slate-300 rounded-xl px-2.5 text-xs font-medium text-slate-800 date-picker-black cursor-pointer h-[42px]"
                   />
                   <input
                     type="time"
                     value={pickupTime}
                     onChange={(e) => setPickupTime(e.target.value)}
-                    className="w-1/3 bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 text-xs font-medium text-slate-800"
+                    className="w-1/3 bg-slate-50 border border-slate-300 rounded-xl px-2 text-xs font-medium text-slate-800 h-[42px]"
                   />
                 </div>
               </div>
@@ -92,38 +92,39 @@ export function HomePage() {
                     type="date"
                     value={returnDate}
                     onChange={(e) => setReturnDate(e.target.value)}
-                    className="w-2/3 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-medium text-slate-800 date-picker-black cursor-pointer"
+                    className="w-2/3 bg-slate-50 border border-slate-300 rounded-xl px-2.5 text-xs font-medium text-slate-800 date-picker-black cursor-pointer h-[42px]"
                   />
                   <input
                     type="time"
                     value={returnTime}
                     onChange={(e) => setReturnTime(e.target.value)}
-                    className="w-1/3 bg-slate-50 border border-slate-300 rounded-xl px-2 py-2 text-xs font-medium text-slate-800"
+                    className="w-1/3 bg-slate-50 border border-slate-300 rounded-xl px-2 text-xs font-medium text-slate-800 h-[42px]"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Fleet Class
-                  </label>
-                  <select
-                    value={fleetClass}
-                    onChange={(e) => setFleetClass(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-800"
-                  >
-                    <option value="all">All Classes</option>
-                    <option value="suv">SUVs & AWD</option>
-                    <option value="sedan">Executive Sedans</option>
-                    <option value="luxury">Luxury Saloons</option>
-                    <option value="economy">Economy</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                  <Car className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Fleet Class</span>
+                </label>
+                <select
+                  value={fleetClass}
+                  onChange={(e) => setFleetClass(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 h-[42px] cursor-pointer"
+                >
+                  <option value="all">All Classes</option>
+                  <option value="suv">SUVs & AWD</option>
+                  <option value="sedan">Executive Sedans</option>
+                  <option value="luxury">Luxury Saloons</option>
+                  <option value="economy">Economy</option>
+                </select>
+              </div>
 
+              <div className="sm:col-span-2 lg:col-span-1">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 sm:px-5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-colors text-xs self-end h-[42px] shrink-0"
+                  className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all text-xs h-[42px]"
                 >
                   <Search className="w-4 h-4" />
                   <span>Find Cars</span>
