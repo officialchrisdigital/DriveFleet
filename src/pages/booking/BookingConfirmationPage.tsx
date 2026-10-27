@@ -1,18 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOperations } from '@/contexts/OperationsContext';
 import { DEMO_VEHICLES } from '@/lib/demo-data';
 import { formatCurrency } from '@/lib/formatters';
+import { downloadVoucherPdf } from '@/lib/voucherPdf';
 import {
   CheckCircle2, Download, Printer, Share2, MapPin, QrCode,
-  Calendar, ShieldCheck, UserCheck, ArrowRight, Lock
+  Calendar, ShieldCheck, UserCheck, ArrowRight, Lock, Loader2, FileCheck
 } from 'lucide-react';
 
 export function BookingConfirmationPage() {
   const { bookingId } = useParams<{ bookingId: string }>();
   const { user } = useAuth();
   const { bookings, vehicles } = useOperations();
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const currentBooking = bookings.find((b) => b.reference === bookingId || b.id === bookingId);
   const matchedVehicle = currentBooking
@@ -23,9 +26,49 @@ export function BookingConfirmationPage() {
   const renterName = currentBooking?.createdByName || (user ? `${user.firstName} ${user.lastName}` : 'Chukwudi Adeyemi');
   const totalAmount = currentBooking?.quote?.totalMinor || 12960000;
 
+  const handlePrintSummary = () => {
+    setIsPrinting(true);
+    setTimeout(() => {
+      window.print();
+      setIsPrinting(false);
+    }, 150);
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      setIsDownloadingPdf(true);
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      downloadVoucherPdf({
+        displayRef,
+        renterName,
+        renterEmail: user?.email || 'customer@drivefleet.com',
+        renterPhone: user?.phone || '+234 803 123 4567',
+        vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+        vehicleCategory: vehicle.category || 'Luxury Fleet',
+        vehicleSeats: vehicle.seats || 5,
+        vehicleTransmission: vehicle.transmission || 'Automatic',
+        vehiclePlate: vehicle.plate || 'LAG-982-XYZ',
+        pickupStation: 'Lagos Ikeja Main Hub (GRA)',
+        pickupAddress: '45 Isaac John Street, GRA Ikeja, Lagos',
+        pickupDateTime: 'Friday, Oct 23, 2026 @ 10:00 AM',
+        returnStation: 'Lagos Ikeja Main Hub (GRA)',
+        returnDateTime: 'Monday, Oct 26, 2026 @ 10:00 AM',
+        subtotalMinor: currentBooking?.quote?.subtotalMinor || totalAmount,
+        promoDiscountMinor: currentBooking?.quote?.promoDiscountMinor,
+        totalMinor: totalAmount,
+      });
+    } catch (error) {
+      console.error('Error downloading voucher PDF:', error);
+      alert('Unable to generate voucher PDF. Please try again.');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Success Notification Banner (Exact Mockup Match) */}
+      {/* Success Notification Banner */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -59,32 +102,43 @@ export function BookingConfirmationPage() {
         </div>
       </div>
 
-      {/* Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
+      {/* Responsive Action Bar */}
+      <div className="bg-slate-50 sm:bg-white rounded-2xl sm:rounded-2xl border border-slate-200 p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs no-print">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
           <button
-            onClick={() => window.print()}
-            className="bg-white hover:bg-slate-50 border border-slate-300 font-semibold px-4 py-2 rounded-xl flex items-center gap-2 text-slate-700 shadow-sm transition-colors"
+            onClick={handlePrintSummary}
+            disabled={isPrinting}
+            className="w-full sm:w-auto min-h-[44px] bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-300 font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 text-slate-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60 cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-slate-500" />
-            <span>Print Summary</span>
+            {isPrinting ? (
+              <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+            ) : (
+              <Printer className="w-4 h-4 text-slate-600" />
+            )}
+            <span>{isPrinting ? 'Opening Print Dialog...' : 'Print Summary'}</span>
           </button>
+
           <button
-            onClick={() => alert(`Official PDF voucher downloaded (${displayRef}.pdf)`)}
-            className="bg-white hover:bg-slate-50 border border-slate-300 font-semibold px-4 py-2 rounded-xl flex items-center gap-2 text-slate-700 shadow-sm transition-colors"
+            onClick={handleDownloadPdf}
+            disabled={isDownloadingPdf}
+            className="w-full sm:w-auto min-h-[44px] bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-300 font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 text-slate-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60 cursor-pointer"
           >
-            <Download className="w-4 h-4 text-slate-500" />
-            <span>Download Voucher PDF</span>
+            {isDownloadingPdf ? (
+              <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 text-blue-600" />
+            )}
+            <span>{isDownloadingPdf ? 'Generating PDF...' : 'Download Voucher PDF'}</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
           <Link
             to="/account/bookings"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl shadow-sm transition-colors flex items-center gap-2"
+            className="w-full sm:w-auto min-h-[44px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
           >
             <span>View in My Bookings</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -252,7 +306,7 @@ export function BookingConfirmationPage() {
 
             <Link
               to="/vehicles"
-              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors block text-center"
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors block text-center no-print"
             >
               Browse More Fleet Vehicles
             </Link>
