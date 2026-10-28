@@ -85,6 +85,19 @@ export function RegisterPage() {
           </p>
         </div>
 
+        {/* Sign-in prompt — shown at top for visibility */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-center">
+          <p className="text-xs text-slate-600">
+            Already have an account?{' '}
+            <Link
+              to={`/login${redirectPath !== '/account' ? `?redirect=${encodeURIComponent(redirectPath)}` : ''}`}
+              className="font-bold text-blue-600 hover:underline"
+            >
+              Sign In Instead
+            </Link>
+          </p>
+        </div>
+
         {/* Error Notification */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-xs text-red-700 flex items-start gap-2.5">
@@ -209,18 +222,6 @@ export function RegisterPage() {
             <span>{loading ? 'Creating Account...' : 'Complete Registration'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
-
-          <div className="pt-3 border-t border-slate-100 text-center">
-            <p className="text-xs text-slate-600">
-              Already have an account?{' '}
-              <Link
-                to={`/login${redirectPath !== '/account' ? `?redirect=${encodeURIComponent(redirectPath)}` : ''}`}
-                className="font-bold text-blue-600 hover:underline"
-              >
-                Sign In Instead
-              </Link>
-            </p>
-          </div>
         </form>
       </div>
     </div>

@@ -74,14 +74,6 @@ export function PublicLayout() {
                 </Link>
 
                 <Link
-                  to="/register"
-                  className="hidden xl:flex text-xs sm:text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 sm:px-3 py-1.5 rounded-lg transition-colors items-center gap-1.5 whitespace-nowrap"
-                >
-                  <UserPlus className="w-3.5 h-3.5 text-blue-600" />
-                  <span>Register</span>
-                </Link>
-
-                <Link
                   to="/vehicles"
                   className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all shadow-sm hover:shadow whitespace-nowrap shrink-0"
                 >
